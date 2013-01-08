@@ -13,6 +13,7 @@ using ObjectivelyRadical.Controls;
 
 namespace InaneSubterra
 {
+    // my code don't steal
     public class InaneSubterra : Microsoft.Xna.Framework.Game
     {
         #region Fields
@@ -48,7 +49,7 @@ namespace InaneSubterra
             // Initialize the game
 
             // For now, set the current scene to a new GameScene() instance.
-            currentScene = new Scenes.GameScene();
+            SetScene(new Scenes.GameScene());
 
             //Set the graphics resolution...
 
@@ -92,11 +93,16 @@ namespace InaneSubterra
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+            spriteBatch.Begin();
+
+
             // If the current game scene exists, then draw everything for it.
             if (currentScene != null)
             {
                 currentScene.Draw(spriteBatch);
             }
+            spriteBatch.End();
+
 
             base.Draw(gameTime);
         }
@@ -104,6 +110,9 @@ namespace InaneSubterra
 
         protected void SetScene(Scene newScene)
         {
+            if (currentScene != null)
+                currentScene.Unload();
+
             currentScene = newScene;
 
             newScene.Initialize();
