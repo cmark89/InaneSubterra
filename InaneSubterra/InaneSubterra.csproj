@@ -113,6 +113,7 @@
     <Compile Include="Objects\GameObject.cs" />
     <Compile Include="Objects\Platform.cs" />
     <Compile Include="Objects\Player.cs" />
+    <Compile Include="Objects\ScrollingBackground.cs" />
     <Compile Include="Physics\BlankHitbox.cs" />
     <Compile Include="Physics\Gravity.cs" />
     <Compile Include="Physics\ICollidable.cs" />

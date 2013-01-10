@@ -51,5 +51,10 @@ namespace InaneSubterra.Objects
         public override void Update(GameTime gameTime)
         {
         }
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(Texture, Position - thisScene.Camera, thisScene.SequenceColors[thisScene.CurrentSequence]);
+        }
     }
 }

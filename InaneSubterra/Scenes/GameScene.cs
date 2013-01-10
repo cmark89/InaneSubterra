@@ -24,6 +24,12 @@ namespace InaneSubterra.Scenes
         public List<Color> SequenceColors { get; private set; }
         public int CurrentSequence { get; private set; }
 
+        // Stores the camera position for drawing the game.
+        public Vector2 Camera { get; private set; }
+
+        // Stores the viewable area on the screen
+        public Rectangle ScreenArea { get; private set; }
+
         // Game physics components...
         public CollisionDetection collisionDetection;
         public Gravity gravity;
@@ -31,8 +37,14 @@ namespace InaneSubterra.Scenes
         // Store a list of all objects in the scene which will require updating...
         public List<GameObject> gameObjects;
 
+        // Store the background for updating purposes.
+        public List<ScrollingBackground> background;
+
         // The player object
         Player player;
+
+        // Stores the distance for which terrain has been generated.  When the camera exceeds this value, it creates more terrain and updates the value
+        float levelLength;
 
         #endregion
         public GameScene()
@@ -47,7 +59,7 @@ namespace InaneSubterra.Scenes
                 SequenceColors = new List<Color>()
                 {
                     new Color(),
-                    Color.AliceBlue,
+                    Color.SkyBlue,
                     Color.DarkOliveGreen,
                     Color.YellowGreen,
                     Color.DarkOrange,
@@ -68,6 +80,10 @@ namespace InaneSubterra.Scenes
 
             // Create a new list to store the game objects
             gameObjects = new List<GameObject>();
+
+            // Store the screen area
+            Viewport view = InaneSubterra.graphics.GraphicsDevice.Viewport;
+            ScreenArea = new Rectangle((int)Camera.X, (int)Camera.Y, view.Width, view.Height);
         }
 
 
@@ -80,7 +96,18 @@ namespace InaneSubterra.Scenes
             if(BlockTexture == null)
                 BlockTexture = content.Load<Texture2D>("Graphics/block");
 
+            
+
             TestAddBlock();
+
+            UpdateCamera();
+            ScreenArea = new Rectangle((int)Camera.X, (int)Camera.Y, ScreenArea.Width, ScreenArea.Height);
+
+            background = new List<ScrollingBackground>();
+            background.Add(new ScrollingBackground(this, (new Vector2(BackgroundTexture.Width / -2, 0))));
+            background.Add(new ScrollingBackground(this, new Vector2(BackgroundTexture.Width / 2, 0)));
+
+            UpdateCamera();
         }
 
 
@@ -98,6 +125,8 @@ namespace InaneSubterra.Scenes
                 {
                     gravity.GravityUpdate(gameTime, go);
                 }
+
+                UpdateCamera();
             }
 
             // Check for any collisions and trigger relevant events.
@@ -116,8 +145,15 @@ namespace InaneSubterra.Scenes
 
         public override void Draw(SpriteBatch spriteBatch)
         {
+            foreach (ScrollingBackground sb in background)
+            {
+                sb.Draw(spriteBatch);
+            }
+
             foreach (GameObject go in gameObjects)
+            {
                 go.Draw(spriteBatch);
+            }
         }
 
 
@@ -133,8 +169,60 @@ namespace InaneSubterra.Scenes
 
             new Objects.Platform(this, new Vector2(32, 500), 8, 1);
 
-
             new Objects.Block(this, new Vector2(150, 0)).ObjectState = ObjectState.Falling;
+        }
+
+        private void UpdateCamera()
+        {
+            // Cache the current camera position
+            Vector2 lastCameraPos = Camera, cameraDelta;
+
+            // Temporarily cache the viewport
+            Viewport view = InaneSubterra.graphics.GraphicsDevice.Viewport;
+
+            // Move the camera, centered on the player.
+            Camera = new Vector2(player.Position.X - (view.Width / 2), Camera.Y);
+
+            // Find how much the camera has changed position.
+            cameraDelta = Camera - lastCameraPos;
+
+            // If the camera has moved...
+            if (cameraDelta.X != 0)
+            {
+                // Update the screen bounds to reflect the current viewport of the screen.
+                ScreenArea = new Rectangle((int)Camera.X, (int)Camera.Y, view.Width, view.Height);
+
+                // Update the background
+                if(background != null)
+                    UpdateBackground(cameraDelta);
+            }
+        }
+
+        private void UpdateBackground(Vector2 cameraDelta)
+        {
+            Console.Clear();
+
+            Console.WriteLine(String.Format("\nLeft BG -- ({0}, {1})\nRight BG -- ({2}, {3})\n\nCamera -- {4}, {5}", background[0].Left, background[0].Right, background[1].Left, background[1].Right, ScreenArea.X, ScreenArea.X +ScreenArea.Width));
+
+            List<ScrollingBackground> removeList = new List<ScrollingBackground>();
+            foreach(ScrollingBackground sb in background)
+            {
+                // Scroll the background
+                sb.Scroll(cameraDelta);
+
+                // If the background image is too far to the left...
+                if (sb.Right < (0))
+                {
+                    // Move it to the right side of the screen
+                    sb.Position = new Vector2(sb.Position.X + ScreenArea.Width + sb.Texture.Width, sb.Position.Y);
+                }
+                // Otherwise, if it's too far to the right...
+                else if (sb.Left > (ScreenArea.Width))
+                {
+                    // Move it to the left side of the screen
+                    sb.Position = new Vector2(sb.Position.X - ScreenArea.Width - sb.Texture.Width, sb.Position.Y);
+                }
+            }
         }
     }
 

@@ -42,9 +42,9 @@ namespace InaneSubterra.Objects
         public override void Update(GameTime gameTime)
         {
 
-            Console.Clear();
-            Console.WriteLine("Player Object State: " + ObjectState.ToString());
-            Console.WriteLine("Player Y Velocity: " + YAcceleration);
+            //Console.Clear();
+            //Console.WriteLine("Player Object State: " + ObjectState.ToString());
+            //Console.WriteLine("Player Y Velocity: " + YAcceleration);
 
             if (KeyboardManager.KeyDown(Keys.Left))
             {

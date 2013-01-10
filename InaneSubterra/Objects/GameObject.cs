@@ -90,8 +90,8 @@ namespace InaneSubterra.Objects
 
         public virtual void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, Position, Color.White);
-            spriteBatch.Draw(Texture, Hitbox, new Color(0f, .8f, .3f, .5f));
+            spriteBatch.Draw(Texture, Position - thisScene.Camera, Color.White);
+            //spriteBatch.Draw(Texture, Hitbox, new Color(0f, .8f, .3f, .5f));
         }
 
 

@@ -17,7 +17,7 @@ namespace InaneSubterra
     public class InaneSubterra : Microsoft.Xna.Framework.Game
     {
         #region Fields
-        GraphicsDeviceManager graphics;
+        public static GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
         // Stores a static copy of the content manager
@@ -102,7 +102,6 @@ namespace InaneSubterra
                 currentScene.Draw(spriteBatch);
             }
             spriteBatch.End();
-
 
             base.Draw(gameTime);
         }
