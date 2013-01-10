@@ -110,6 +110,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\WorldGenerator.cs" />
     <Compile Include="Objects\GameObject.cs" />
     <Compile Include="Objects\Platform.cs" />
     <Compile Include="Objects\Player.cs" />
@@ -166,7 +167,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\" />
     <Folder Include="Entities\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

@@ -36,13 +36,13 @@ namespace InaneSubterra.Objects
             Name = "Block";
 
             // Set the OnCollision event to resolve collisions only with other blocks.
-            OnCollision += delegate(object sender, CollisionEventArgs e)
-            {
+            //OnCollision += delegate(object sender, CollisionEventArgs e)
+            //{
                 // Furthermore, only resolve the collision if this object's Y is higher than the colliding object's.
                 // This will prevent falling blocks from nudging platform blocks out of place.
-                if (e.CollidedObject.Name == "Block" && Hitbox.Y < e.CollidedObject.Hitbox.Y) 
-                    ResolveCollisions(sender, e);
-            };
+                //if (e.CollidedObject.Name == "Block" && Hitbox.Y < e.CollidedObject.Hitbox.Y) 
+                    //ResolveCollisions(sender, e);
+            //};
 
             base.Initialize();
         }

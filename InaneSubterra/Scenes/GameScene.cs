@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using ObjectivelyRadical.Controls;
+using InaneSubterra.Core;
 using InaneSubterra.Physics;
 using InaneSubterra.Objects;
 
@@ -34,6 +35,9 @@ namespace InaneSubterra.Scenes
         public CollisionDetection collisionDetection;
         public Gravity gravity;
 
+        // Level generator
+        WorldGenerator worldGenerator;
+
         // Store a list of all objects in the scene which will require updating...
         public List<GameObject> gameObjects;
 
@@ -41,7 +45,7 @@ namespace InaneSubterra.Scenes
         public List<ScrollingBackground> background;
 
         // The player object
-        Player player;
+        public Player player {get; private set;}
 
         // Stores the distance for which terrain has been generated.  When the camera exceeds this value, it creates more terrain and updates the value
         float levelLength;
@@ -78,6 +82,9 @@ namespace InaneSubterra.Scenes
             // Instantiate a new gravity
             gravity = new Gravity(this);
 
+            // Instantiate a new world generator
+            worldGenerator = new WorldGenerator(this);
+
             // Create a new list to store the game objects
             gameObjects = new List<GameObject>();
 
@@ -102,6 +109,7 @@ namespace InaneSubterra.Scenes
 
             UpdateCamera();
             ScreenArea = new Rectangle((int)Camera.X, (int)Camera.Y, ScreenArea.Width, ScreenArea.Height);
+            levelLength = ScreenArea.X + ScreenArea.Width + 1;
 
             background = new List<ScrollingBackground>();
             background.Add(new ScrollingBackground(this, (new Vector2(BackgroundTexture.Width / -2, 0))));
@@ -125,8 +133,14 @@ namespace InaneSubterra.Scenes
                 {
                     gravity.GravityUpdate(gameTime, go);
                 }
+            }
 
-                UpdateCamera();
+            UpdateCamera();
+
+            if (ScreenArea.X + ScreenArea.Width > levelLength)
+            {
+                Console.WriteLine("Generating area!");
+                worldGenerator.GenerateArea(ref levelLength);
             }
 
             // Check for any collisions and trigger relevant events.
@@ -200,10 +214,6 @@ namespace InaneSubterra.Scenes
 
         private void UpdateBackground(Vector2 cameraDelta)
         {
-            Console.Clear();
-
-            Console.WriteLine(String.Format("\nLeft BG -- ({0}, {1})\nRight BG -- ({2}, {3})\n\nCamera -- {4}, {5}", background[0].Left, background[0].Right, background[1].Left, background[1].Right, ScreenArea.X, ScreenArea.X +ScreenArea.Width));
-
             List<ScrollingBackground> removeList = new List<ScrollingBackground>();
             foreach(ScrollingBackground sb in background)
             {
