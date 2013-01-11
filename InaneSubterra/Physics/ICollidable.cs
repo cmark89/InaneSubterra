@@ -19,6 +19,9 @@ namespace InaneSubterra.Physics
 
         // Determines whether the object totally blocks movement
         bool Solid { get; }
+
+        // Used to disable objects that are no longer needed for collision detection
+        bool Sleeping { get; set; }
     }
 
     // CollisionEventHandler is used to raise the OnCollision event.

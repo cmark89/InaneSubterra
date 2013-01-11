@@ -110,6 +110,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\AnimatedSprite.cs" />
+    <Compile Include="Core\Animation.cs" />
     <Compile Include="Core\WorldGenerator.cs" />
     <Compile Include="Objects\GameObject.cs" />
     <Compile Include="Objects\Platform.cs" />

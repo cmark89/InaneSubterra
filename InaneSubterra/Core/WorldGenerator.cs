@@ -58,7 +58,7 @@ namespace InaneSubterra.Core
         private float verticalPlatformChance;
 
         // maxYJump is used to ensure that platforms generated are able to theoretically be jumped to.
-        private float maxYJump = 170;
+        private float maxYJump = 140;
         #endregion
 
 
@@ -72,7 +72,7 @@ namespace InaneSubterra.Core
         private Platform lastPlatform;
 
         // Store the last gap to retroactively add danger to the gap if need be (this allows prediction of player jumping paths)
-        private Rectangle lastGap;
+        //private Rectangle lastGap;
 
         public WorldGenerator(GameScene newScene)
         {

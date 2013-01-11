@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using InaneSubterra.Scenes;
 
 namespace InaneSubterra.Physics
 {
@@ -14,15 +15,22 @@ namespace InaneSubterra.Physics
         // axisList stores all ICollidable objects in the game and sorts them along their X axis.
         public List<ICollidable> axisList;
 
+        public List<ICollidable> sleepingList;
+
         // activeList is used during sweep and prune.
         public List<ICollidable> activeList;
+
+        public GameScene thisScene;
 
         #endregion
 
         // Static constructor instantiates the lists required for sweep and prune collision detection.
-        public CollisionDetection()
+        public CollisionDetection(GameScene newScene)
         {
+            thisScene = newScene;
+
             axisList = new List<ICollidable>();
+            sleepingList = new List<ICollidable>();
             activeList = new List<ICollidable>();
         }
 
@@ -63,12 +71,73 @@ namespace InaneSubterra.Physics
         }
 
 
+        public List<ICollidable> QuickSort(List<ICollidable> listToSort)
+        {
+            if (listToSort.Count < 2)
+            {
+                // List is already sorted or non existent, so return it
+                return listToSort;
+            }
+            // Otherwise, perform the quicksort.
+            else
+            {
+                // Select a pivot point from the list and remove it
+                ICollidable pivot = listToSort[listToSort.Count / 2];
+                listToSort.Remove(pivot);
+
+                List<ICollidable> lessList = new List<ICollidable>();
+                List<ICollidable> moreList = new List<ICollidable>();
+                
+                foreach (ICollidable ic in listToSort)
+                {
+                    if (ic.Hitbox.X < pivot.Hitbox.X)
+                        lessList.Add(ic);
+                    else
+                        moreList.Add(ic);
+                }
+
+                // Sort recursively
+                listToSort.Clear();
+                listToSort.AddRange(QuickSort(lessList));
+                listToSort.Add(pivot);
+                listToSort.AddRange(QuickSort(moreList));
+
+                return listToSort;
+            }
+        }
+
+
         public void Update(GameTime gameTime)
         {
             // Run the broadphase, and then perform narrow phase on the sets of objects that result.
             if (axisList.Count > 1)
             {
-                SortAxisList();
+                //Console.Clear();
+                //Console.WriteLine("Objects: " + axisList.Count);
+                //Console.WriteLine("Bubblesort operations: " + (axisList.Count * axisList.Count).ToString());
+                //Console.WriteLine("Quicksort operations: " + (axisList.Count * Math.Log10(axisList.Count)).ToString());
+
+                // First, find objects that should sleep
+                //foreach (ICollidable ic in axisList.FindAll(x => x.Hitbox.X + x.Hitbox.Width < thisScene.ScreenArea.X))
+                //{
+                    // Put them in the house of sleep
+                    //ic.Sleeping = true;
+                    //sleepingList.Add(ic);
+                //}
+
+                // Find sleeping objects that should awake
+                //foreach (ICollidable ic in axisList.FindAll(x => x.Hitbox.X + x.Hitbox.Width > thisScene.ScreenArea.X && x.Sleeping))
+                //{
+                    // Wake them up
+                    //ic.Sleeping = false;
+                    //axisList.Add(ic);
+                //}
+
+                // Now make sure each list only contains the proper elements
+
+
+                //SortAxisList();
+                QuickSort(axisList);
                 NarrowphaseCollisionDetection(BroadphaseCollisionDetection());
             }
         }
@@ -92,6 +161,9 @@ namespace InaneSubterra.Physics
             // Iterate through each ICollidable axisList and check for possible collisions, adding each pair to the possibleCollisionList.
             for(int i = 0; i < axisList.Count; i++)
             {
+                if (axisList[i].Sleeping)
+                    continue;
+
                 // Make absolutely sure the active list is clear
                 activeList.Clear();
 
@@ -101,6 +173,9 @@ namespace InaneSubterra.Physics
                 // Check for possible collisions with each element after the active element
                 for (int j = i + 1; j < axisList.Count; j++)
                 {
+                    if (axisList[i].Sleeping)
+                        continue;
+
                     // If the ICollidable's X falls within the span of the active element's width...
                     if (axisList[j].Hitbox.X < (axisList[i].Hitbox.X + axisList[i].Hitbox.Width))
                     {
@@ -161,7 +236,7 @@ namespace InaneSubterra.Physics
 
             ICollidable tempCollidable = new BlankHitbox(searchRect);
             axisList.Add(tempCollidable);
-            SortAxisList();
+            QuickSort(axisList);
 
             int index = axisList.FindIndex(x => x == tempCollidable);
             

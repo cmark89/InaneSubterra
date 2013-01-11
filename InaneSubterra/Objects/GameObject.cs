@@ -30,6 +30,9 @@ namespace InaneSubterra.Objects
         // Determines whether the object can be moved through
         public bool Solid { get; protected set; }
 
+        // Stores whether the object is sleeping or not
+        public bool Sleeping { get; set; }
+
         // Stores whether the object is on the ground or not.
         public ObjectState ObjectState { get; set; }
 
@@ -43,11 +46,14 @@ namespace InaneSubterra.Objects
         public bool RequestsFloorCollisionCheck = false;
 
         // Each GameObject has a Hitbox for dealing with collisions.  By default, it is the displayed sprite.
+
+        public int FrameWidth = 32;
+        public int FrameHeight = 32;
         public virtual Rectangle Hitbox
         {
             get
             {
-                return new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
+                return new Rectangle((int)Position.X, (int)Position.Y, FrameWidth, FrameHeight);
             }
         }
 
@@ -91,6 +97,9 @@ namespace InaneSubterra.Objects
         public virtual void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(Texture, Position - thisScene.Camera, Color.White);
+
+            // Draw the hitbox
+            spriteBatch.Draw(thisScene.BlockTexture, Position - thisScene.Camera, new Color(0f,.6f, 1f, .7f));
             //spriteBatch.Draw(Texture, Hitbox, new Color(0f, .8f, .3f, .5f));
         }
 
@@ -143,8 +152,9 @@ namespace InaneSubterra.Objects
                 int yPen = y2 - y1;
 
                 // If X penetration is shallower...
-                if (xPen < yPen)
+                if (xPen <= yPen)
                 {
+                    //Console.WriteLine("Resolve horizontal!");
                     // Resolve along the X axis
 
                     //If collision comes from the right
@@ -155,6 +165,7 @@ namespace InaneSubterra.Objects
                 }
                 else
                 {
+                    //Console.WriteLine("Resolve vertical!");
                     // Otherwise resolve around Y
                     //Position = new Vector2(Position.X, PreviousPosition.Y);
                     
@@ -164,13 +175,15 @@ namespace InaneSubterra.Objects
                     {
                         Position = new Vector2(Position.X, Position.Y - yPen);
                         //Position = new Vector2(Position.X, otherObject.Hitbox.Y - Hitbox.Height);
-
                         CheckForFloor();
                     }
                     else
                     {
                         Position = new Vector2(Position.X, Position.Y + yPen);
                     }
+
+                    // Make a recursive call in the fringe case that both sides have to be resolved.
+                    ResolveCollisions(this, e);
                 }
             }
         }
@@ -195,7 +208,6 @@ namespace InaneSubterra.Objects
             if (floorObjectList.Count > 0)
             {
                 ObjectState = ObjectState.Grounded;
-                YAcceleration = 0f;
             }
             else
             {
@@ -213,5 +225,11 @@ namespace InaneSubterra.Objects
         Jumping,
         Falling,
         Grounded
+    }
+
+    public enum Facing
+    {
+        Left,
+        Right
     }
 }

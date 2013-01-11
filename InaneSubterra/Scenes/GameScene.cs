@@ -20,6 +20,7 @@ namespace InaneSubterra.Scenes
         // Content cached in these fields for now...
         public Texture2D BackgroundTexture { get; private set; }
         public Texture2D BlockTexture { get; private set; }
+        public Texture2D PlayerTexture { get; private set; }
 
         // Colors for the various sequences are stored here...
         public List<Color> SequenceColors { get; private set; }
@@ -77,7 +78,7 @@ namespace InaneSubterra.Scenes
             CurrentSequence = 1;
 
             // Instantiate a new collision detection module
-            collisionDetection = new CollisionDetection();
+            collisionDetection = new CollisionDetection(this);
             
             // Instantiate a new gravity
             gravity = new Gravity(this);
@@ -103,6 +104,8 @@ namespace InaneSubterra.Scenes
             if(BlockTexture == null)
                 BlockTexture = content.Load<Texture2D>("Graphics/block");
 
+            if (PlayerTexture == null)
+                PlayerTexture = content.Load<Texture2D>("Graphics/player");
             
 
             TestAddBlock();
@@ -166,8 +169,12 @@ namespace InaneSubterra.Scenes
 
             foreach (GameObject go in gameObjects)
             {
-                go.Draw(spriteBatch);
+                // Delay the player's draw until the end.
+                if(go != player)
+                    go.Draw(spriteBatch);
             }
+
+            player.Draw(spriteBatch);
         }
 
 

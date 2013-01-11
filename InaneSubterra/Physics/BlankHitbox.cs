@@ -19,6 +19,8 @@ namespace InaneSubterra.Physics
 
         public bool Solid { get; private set; }
 
+        public bool Sleeping { get; set; }
+
 
         public BlankHitbox(Rectangle rect)
         {
