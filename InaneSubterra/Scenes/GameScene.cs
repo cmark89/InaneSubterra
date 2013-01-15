@@ -21,6 +21,7 @@ namespace InaneSubterra.Scenes
         public Texture2D BackgroundTexture { get; private set; }
         public Texture2D BlockTexture { get; private set; }
         public Texture2D PlayerTexture { get; private set; }
+        public Texture2D CrystalTexture { get; private set; }
 
         // Colors for the various sequences are stored here...
         public List<Color> SequenceColors { get; private set; }
@@ -51,6 +52,16 @@ namespace InaneSubterra.Scenes
         // Stores the distance for which terrain has been generated.  When the camera exceeds this value, it creates more terrain and updates the value
         float levelLength;
 
+        // Stores the length of the current sequence; used to determine when to advance to the next sequence
+        public float sequenceLength;
+        
+        // Stores the length of the current sequence after which it will be possible for a Sequence Crystal to spawn, and the length at which it is certain
+        //public float sequenceCrystalMinLength = 3000f;
+        //public float sequenceCrystalMaxLength = 6000f;
+        public float sequenceCrystalMinLength = 300f;
+        public float sequenceCrystalMaxLength = 500f;
+        public bool crystalAppeared = false;
+
         #endregion
         public GameScene()
         {
@@ -64,13 +75,16 @@ namespace InaneSubterra.Scenes
                 SequenceColors = new List<Color>()
                 {
                     new Color(),
-                    Color.SkyBlue,
-                    Color.DarkOliveGreen,
-                    Color.YellowGreen,
-                    Color.DarkOrange,
-                    Color.OrangeRed,
-                    Color.IndianRed,
-                    Color.DarkRed
+                    Color.Aquamarine,               //Sequence 1: Curiosity
+                    Color.SpringGreen,              //Sequence 2: Optimism
+                    Color.YellowGreen,              //Sequence 3: Hope
+                    Color.DarkOliveGreen,           //Sequence 4: Doubt
+                    Color.DarkOrange,               //Sequence 5: Regret
+                    Color.OrangeRed,                //Sequence 6: Fear
+                    Color.MediumPurple,             //Sequence 7: Guilt
+                    Color.DarkMagenta,              //Sequence 8: Despair
+                    new Color(.1f, .1f, .1f, 1f),   //Sequence 9: Introspection
+                    Color.Red                       //Sequence 0: Faith
                 };
             }
             
@@ -106,6 +120,9 @@ namespace InaneSubterra.Scenes
 
             if (PlayerTexture == null)
                 PlayerTexture = content.Load<Texture2D>("Graphics/player");
+
+            if (CrystalTexture == null)
+                CrystalTexture = content.Load<Texture2D>("Graphics/crystal");
             
 
             TestAddBlock();
@@ -157,6 +174,13 @@ namespace InaneSubterra.Scenes
                     go.RequestsFloorCollisionCheck = false;
                 }
             }
+
+            // Update color changing for the background if needed
+            foreach (ScrollingBackground sb in background)
+            {
+                sb.Update(gameTime);
+            }
+            
         }
 
 
@@ -240,6 +264,21 @@ namespace InaneSubterra.Scenes
                     sb.Position = new Vector2(sb.Position.X - ScreenArea.Width - sb.Texture.Width, sb.Position.Y);
                 }
             }
+        }
+
+        public void SequenceUp()
+        {
+            CurrentSequence++;
+            sequenceLength = 0;
+
+            foreach (ScrollingBackground bg in background)
+            {
+                bg.ChangeColor(SequenceColors[CurrentSequence], 5f);
+            }
+
+            worldGenerator.SequenceUp();
+
+            crystalAppeared = false;
         }
     }
 

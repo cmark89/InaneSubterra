@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using InaneSubterra.Scenes;
+using InaneSubterra.Objects;
 
 namespace InaneSubterra.Physics
 {
@@ -112,31 +113,19 @@ namespace InaneSubterra.Physics
             // Run the broadphase, and then perform narrow phase on the sets of objects that result.
             if (axisList.Count > 1)
             {
-                //Console.Clear();
-                //Console.WriteLine("Objects: " + axisList.Count);
-                //Console.WriteLine("Bubblesort operations: " + (axisList.Count * axisList.Count).ToString());
-                //Console.WriteLine("Quicksort operations: " + (axisList.Count * Math.Log10(axisList.Count)).ToString());
+                List<ICollidable> sleepList = new List<ICollidable>();
+                foreach(ICollidable ic in axisList)
+                {
+                    if (Math.Abs(thisScene.Camera.X - ic.Hitbox.X) > 2000)
+                        sleepList.Add(ic);
+                }
 
-                // First, find objects that should sleep
-                //foreach (ICollidable ic in axisList.FindAll(x => x.Hitbox.X + x.Hitbox.Width < thisScene.ScreenArea.X))
-                //{
-                    // Put them in the house of sleep
-                    //ic.Sleeping = true;
-                    //sleepingList.Add(ic);
-                //}
+                foreach (ICollidable ic in sleepList)
+                {
+                    axisList.Remove(ic);
+                    thisScene.gameObjects.Remove(ic as GameObject);
+                }
 
-                // Find sleeping objects that should awake
-                //foreach (ICollidable ic in axisList.FindAll(x => x.Hitbox.X + x.Hitbox.Width > thisScene.ScreenArea.X && x.Sleeping))
-                //{
-                    // Wake them up
-                    //ic.Sleeping = false;
-                    //axisList.Add(ic);
-                //}
-
-                // Now make sure each list only contains the proper elements
-
-
-                //SortAxisList();
                 QuickSort(axisList);
                 NarrowphaseCollisionDetection(BroadphaseCollisionDetection());
             }
@@ -275,6 +264,14 @@ namespace InaneSubterra.Physics
             
             // Return all collisions
             return overlappingObjects.ToArray();
+        }
+
+        public ICollidable[] CheckForCollision(Rectangle searchRect, Vector2 offset)
+        {
+            searchRect.X += (int)offset.X;
+            searchRect.Y += (int)offset.Y;
+
+            return CheckForCollision(searchRect);
         }
     }
 }

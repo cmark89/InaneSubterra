@@ -145,7 +145,7 @@ namespace InaneSubterra.Objects
                 x1 = Math.Max(Hitbox.X, otherObject.Hitbox.X);
                 x2 = Math.Min(Hitbox.X + Hitbox.Width, otherObject.Hitbox.X + otherObject.Hitbox.Width);
                 
-                y1 = Math.Max(Hitbox.Y, otherObject.Hitbox.Y);  //Change to Min if this doesn't work.  Y moves downwards, so this should be okay.
+                y1 = Math.Max(Hitbox.Y, otherObject.Hitbox.Y);  
                 y2 = Math.Min(Hitbox.Y + Hitbox.Height, otherObject.Hitbox.Y + otherObject.Hitbox.Height);
 
                 int xPen = x2 - x1;
@@ -154,21 +154,18 @@ namespace InaneSubterra.Objects
                 // If X penetration is shallower...
                 if (xPen <= yPen)
                 {
-                    //Console.WriteLine("Resolve horizontal!");
                     // Resolve along the X axis
 
                     //If collision comes from the right
                     if(PreviousPosition.X > Position.X)
-                        Position = new Vector2(Position.X + xPen, Position.Y);
+                        Position = new Vector2(Position.X + (xPen + 1), Position.Y);
                     else
-                        Position = new Vector2(Position.X - xPen, Position.Y);
+                        Position = new Vector2(Position.X - (xPen + 1), Position.Y);
                 }
                 else
                 {
-                    //Console.WriteLine("Resolve vertical!");
                     // Otherwise resolve around Y
                     //Position = new Vector2(Position.X, PreviousPosition.Y);
-                    
 
                     // If the collision occurs from above...
                     if (PreviousPosition.Y < Position.Y)
@@ -211,10 +208,7 @@ namespace InaneSubterra.Objects
             }
             else
             {
-                if (ObjectState == ObjectState.Jumping)
-                    return;
-                else
-                    ObjectState = ObjectState.Falling;
+                ObjectState = ObjectState.Falling;
             }
         }
     }

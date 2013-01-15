@@ -14,6 +14,8 @@ namespace InaneSubterra.Objects
         // Bool that stores whether the block is visible and should be drawn
         //private bool isVisible = true;
 
+        // The color of the sequence the block was spawned under.
+        Color color;
 
         public Block(GameScene scene, Vector2 newPos)
         {
@@ -21,6 +23,8 @@ namespace InaneSubterra.Objects
             thisScene = scene;
             Position = newPos;
             Texture = thisScene.BlockTexture;
+
+            color = thisScene.SequenceColors[thisScene.CurrentSequence];
 
             // Run initialization logic.
             Initialize();
@@ -30,7 +34,7 @@ namespace InaneSubterra.Objects
         new public void Initialize()
         {
             // Set the block to be unconcerned with gravity.
-            UsesGravity = true;
+            UsesGravity = false;
             
             Solid = true;
             Name = "Block";
@@ -54,7 +58,7 @@ namespace InaneSubterra.Objects
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, Position - thisScene.Camera, thisScene.SequenceColors[thisScene.CurrentSequence]);
+            spriteBatch.Draw(Texture, Position - thisScene.Camera, color);
         }
     }
 }

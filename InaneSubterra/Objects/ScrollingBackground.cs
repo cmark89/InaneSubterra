@@ -32,23 +32,51 @@ namespace InaneSubterra.Objects
         public static float scrollFactor = .2f;
         GameScene thisScene;
 
+        Color color;
+
+
+        float colorFadeDuration;
+        float fadeTime;
+        Color oldColor;
+        Color targetColor;
+
         public ScrollingBackground(GameScene newScene, Vector2 newPosition)
         {
             thisScene = newScene;
 
             Texture = thisScene.BackgroundTexture;
             Position = newPosition;
+
+            color = thisScene.SequenceColors[thisScene.CurrentSequence];
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            if (colorFadeDuration > 0)
+            {
+                fadeTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                color = Color.Lerp(oldColor, targetColor, fadeTime / colorFadeDuration);
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, Position, thisScene.SequenceColors[thisScene.CurrentSequence]);
+            spriteBatch.Draw(Texture, Position, color);
         }
 
         public void Scroll(Vector2 scrollAmount)
         {
             // Move the background proportional to what the camera moves
             Position = Position - (scrollAmount * scrollFactor);
+        }
+
+        public void ChangeColor(Color newColor, float changeTime = 5f)
+        {
+            fadeTime = 0;
+            colorFadeDuration = changeTime;
+
+            oldColor = color;
+            targetColor = newColor;
         }
     }
 }

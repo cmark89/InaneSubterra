@@ -21,7 +21,8 @@ namespace InaneSubterra.Core
             set
             {
                 _position = value;
-                CurrentAnimation.Position = value;
+                if(CurrentAnimation != null)
+                    CurrentAnimation.Position = value;
             }
         }
 
@@ -78,9 +79,17 @@ namespace InaneSubterra.Core
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            
+
             if (CurrentAnimation != null)
                 CurrentAnimation.Draw(spriteBatch);
+        }
+
+
+        public void Draw(SpriteBatch spriteBatch, Color drawColor)
+        {
+            
+            if (CurrentAnimation != null)
+                CurrentAnimation.Draw(spriteBatch, drawColor);
         }
 
 

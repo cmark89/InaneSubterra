@@ -66,6 +66,18 @@ namespace InaneSubterra.Core
                 spriteBatch.Draw(Texture, new Rectangle((int)(Position.X - thisScene.Camera.X), (int)(Position.Y - thisScene.Camera.Y), frameWidth, frameHeight), GetSourceRectangle(Frames[CurrentFrame]), Color.White, 0f, Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
         }
 
+
+        // Draw overload takes a color to draw
+        public void Draw(SpriteBatch spriteBatch, Color color)
+        {
+            // Set this to get the proper source rectangle
+            if (!HorizontalFlip)
+                spriteBatch.Draw(Texture, Position - thisScene.Camera, GetSourceRectangle(Frames[CurrentFrame]), color);
+            else
+                spriteBatch.Draw(Texture, new Rectangle((int)(Position.X - thisScene.Camera.X), (int)(Position.Y - thisScene.Camera.Y), frameWidth, frameHeight), GetSourceRectangle(Frames[CurrentFrame]), color, 0f, Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+        }
+
+
         public Rectangle GetSourceRectangle(int index)
         {
             int row, column;

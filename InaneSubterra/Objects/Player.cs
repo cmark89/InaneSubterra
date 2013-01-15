@@ -18,6 +18,9 @@ namespace InaneSubterra.Objects
         PlayerState playerState;
         Facing facing;
 
+        public float horizontalSpeed = 180;
+        public float jumpVelocity = -400;
+
         public override Rectangle Hitbox
         {
             get
@@ -60,13 +63,11 @@ namespace InaneSubterra.Objects
 
         public override void Update(GameTime gameTime)
         {
-
-            //Console.WriteLine("Player Object State: " + ObjectState.ToString());
             //Console.WriteLine("Player Y Velocity: " + YAcceleration);
 
             if (KeyboardManager.KeyDown(Keys.Left))
             {
-                Position += new Vector2(-3, 0);
+                Position += new Vector2((int)(horizontalSpeed * gameTime.ElapsedGameTime.TotalSeconds * -1), 0);
                 if (ObjectState != ObjectState.Jumping)
                     RequestsFloorCollisionCheck = true;
 
@@ -81,7 +82,7 @@ namespace InaneSubterra.Objects
 
             if (KeyboardManager.KeyDown(Keys.Right))
             {
-                Position += new Vector2(3, 0);
+                Position += new Vector2((int)(horizontalSpeed * gameTime.ElapsedGameTime.TotalSeconds), 0);
                 if (ObjectState != ObjectState.Jumping)
                     RequestsFloorCollisionCheck = true;
 
@@ -96,8 +97,7 @@ namespace InaneSubterra.Objects
 
             if (KeyboardManager.KeyPressedDown(Keys.Space) && ObjectState == ObjectState.Grounded)
             {
-                Console.WriteLine("Jump!");
-                YAcceleration = -400;
+                YAcceleration = jumpVelocity;
                 ObjectState = ObjectState.Jumping;
                 playerState = PlayerState.Jump;
                 sprite.PlayAnimation("Jump");
@@ -149,7 +149,7 @@ namespace InaneSubterra.Objects
             sprite.Draw(spriteBatch);
 
            //Figure out the proper hitbox with this
-           //spriteBatch.Draw(thisScene.BlockTexture, new Rectangle((int)(Hitbox.X + 12 - thisScene.Camera.X), (int)(Hitbox.Y - thisScene.Camera.Y), 26, 48), new Color(0f,.4f,.8f,.5f));
+           //spriteBatch.Draw(thisScene.BlockTexture, new Rectangle((int)(Hitbox.X - thisScene.Camera.X), (int)(Hitbox.Y - thisScene.Camera.Y), Hitbox.Width, Hitbox.Height), new Color(0f,.4f,.8f,.5f));
 
             //if(floorHitbox != null)
                 //spriteBatch.Draw(Texture, floorHitbox, new Color(1f,1f,0f, .5f));

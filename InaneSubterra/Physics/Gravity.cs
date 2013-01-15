@@ -11,7 +11,7 @@ namespace InaneSubterra.Physics
     public class Gravity
     {
         GameScene thisScene;
-        const double gravityAcceleration = 430f;
+        public const double gravityAcceleration = 430f;
 
 
         public Gravity(GameScene gameScene)

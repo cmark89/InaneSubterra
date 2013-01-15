@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using InaneSubterra.Scenes;
 using InaneSubterra.Objects;
+using InaneSubterra.Physics;
 using Microsoft.Xna.Framework;
 
 namespace InaneSubterra.Core
@@ -19,8 +20,8 @@ namespace InaneSubterra.Core
         private const float MIN_MIN_GAP_WIDTH = 50f;
         private const float MAX_MIN_GAP_WIDTH = 100f;
 
-        private const float MIN_MAX_GAP_WIDTH = 200f;
-        private const float MAX_MAX_GAP_WIDTH = 400f;
+        private const float MIN_MAX_GAP_WIDTH = 150f;
+        private const float MAX_MAX_GAP_WIDTH = 325f;
 
         private const int MIN_MIN_PLATFORM_WIDTH = 2;
         private const int MAX_MIN_PLATFORM_WIDTH = 5;
@@ -115,7 +116,9 @@ namespace InaneSubterra.Core
         public void GenerateGap(ref float levelLength)
         {
             // Because the gap being generated is nothing, simply increase the levelLength by a random amount.
-            levelLength += (float)(rand.NextDouble() * (maxGapWidth - minGapWidth)) + minGapWidth;
+            float length = (float)(rand.NextDouble() * (maxGapWidth - minGapWidth)) + minGapWidth;
+            levelLength += length;
+            thisScene.sequenceLength += length;
 
             // If the current sequence is beyond a certain amount, roll to generate a hazard
         }
@@ -130,7 +133,15 @@ namespace InaneSubterra.Core
 
             // First, determine the X and Y start points of the new platform.
             float newX = levelLength + (thisScene.ScreenArea.X + thisScene.ScreenArea.Width - levelLength);
-            float newY = rand.Next((int)(Math.Max(0 + thisScene.player.Hitbox.Height, lastY - maxYJump)), thisScene.ScreenArea.Height - thisScene.BlockTexture.Height);
+            float newY;
+
+            float maxJumpHeight = (int)(Math.Max(0 + thisScene.player.Hitbox.Height, MaxJumpHeight(newX, lastY)));
+            if(maxJumpHeight > thisScene.ScreenArea.Height - thisScene.BlockTexture.Height)
+                maxJumpHeight = thisScene.ScreenArea.Height - thisScene.BlockTexture.Height;
+            //if (lastY - MaxJumpHeight(newX) >= thisScene.ScreenArea.Height - thisScene.BlockTexture.Height)
+                //newY = rand.Next(0 + thisScene.player.Hitbox.Height, thisScene.ScreenArea.Height - thisScene.BlockTexture.Height);
+            //else
+            newY = rand.Next((int)maxJumpHeight, thisScene.ScreenArea.Height - thisScene.BlockTexture.Height);
 
 
             // Possibly roll to see if a preset platform type gets created.  If not, then proceed to the next segment.
@@ -154,6 +165,7 @@ namespace InaneSubterra.Core
 
             // Increase the level length by the total length of the new platform.
             levelLength += lastPlatform.Width;
+            thisScene.sequenceLength += lastPlatform.Width;
         }
 
 
@@ -162,7 +174,7 @@ namespace InaneSubterra.Core
         {
             // Increase the gap chance by 10% if it's not yet 100%
             if (gapChance < 1)
-                gapChance += .1f;
+                gapChance += .05f;
 
             // Decrease the maximum width of platforms if the current sequence is odd (decreases every 2 sequences)
             if (thisScene.CurrentSequence % 2 > 0 && maxPlatformWidth > 1)
@@ -177,10 +189,45 @@ namespace InaneSubterra.Core
 
             // Increase the minimum gap width by a random amount
             minGapWidth += rand.Next(0, 5) + thisScene.CurrentSequence;
+        }
 
-            // Increase maximum Y jump, but only if it is below the ABSOLUTE MAXIMUM
-            if (maxYJump < 350)
-                maxYJump += thisScene.CurrentSequence * 2;
+
+        // Returns the height the player can reach, given the new platform's X and the last platform's Y
+        public float MaxJumpHeight(float newX, float lastY)
+        {
+            // Store the furthest right value of the last platform
+            float platformEnd;
+            if (lastPlatform != null)
+                platformEnd = (lastPlatform.X + lastPlatform.Width);
+            else
+                platformEnd = 100;
+            Console.WriteLine("Calculating maximum jump height...");
+            // Get the distance between the platforms
+            float gapLength = newX - platformEnd;
+            Console.WriteLine("Gap Width: " + gapLength);
+            // Find how long it would take in seconds for the player to jump between the gaps
+            float jumpTime = gapLength / thisScene.player.horizontalSpeed;
+            Console.WriteLine("Jump Time: " + jumpTime);
+
+            // Find the maximum height the player can reach in that time given their jump velocity and gravity
+            
+            float finalHeight;
+            if (jumpTime <= 1)
+                finalHeight = lastY + (thisScene.player.jumpVelocity / 2.8f);
+            else
+                finalHeight = lastY + ((thisScene.player.jumpVelocity / 2.8f) + ((float)Gravity.gravityAcceleration * (jumpTime - 1)));
+
+            Console.WriteLine("Final maximum height: " + finalHeight);
+            return finalHeight;
+        }
+
+        // Returns the maximum width of a gap the player can clear, given the last platform's Y
+        // Only run if the player is above the platform.
+        public float MaxGapWidth(float newX, float lastY)
+        {
+            // Take player's last Y position
+            // Add the jump velocity and multiply the result by (ScreenHeight - blockHeight) - Y, obviously factoring in Gravity time
+            return 0;
         }
     }
 }
