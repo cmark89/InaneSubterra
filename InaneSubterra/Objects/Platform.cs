@@ -75,11 +75,41 @@ namespace InaneSubterra.Objects
                     Console.WriteLine("A Sequence Crystal appears!");
                     // Spawn a sequence crystal in the middle of the platform
                     new SequenceCrystal(thisScene, new Vector2(MiddleOfPlatform() - 24, Y - 48));
+
+                    // Remove all falling blocks from the platform.
                 }
             }
             else
             {
                 Console.WriteLine("Sequence Progress: " + thisScene.sequenceLength + " / " + thisScene.sequenceCrystalMinLength);
+
+                // Check to see if the platform generated should roll for falling blocks
+                if (thisScene.CurrentSequence >= 3)
+                {
+                    float probability = (.05f * thisScene.CurrentSequence);
+                    if (rand.NextDouble() < probability)
+                    {
+                        // The platform rolls for falling blocks now.
+                        for (int y = 0; y < Width; y++)
+                        {
+                            if (rand.NextDouble() < probability)
+                            {
+                                // The block is a falling block.
+                                blocks[y].FallingBlock = true;
+                                blocks[y].fallTime = 2f - ((thisScene.CurrentSequence - 2) * .25f);
+
+                                foreach (Block b in blocks)
+                                {
+                                    if (b.Hitbox.Y == blocks[y].Hitbox.Y && b != blocks[y])
+                                    {
+                                        blocks[y].linkedBlocks.Add(b);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
             }
 
         }
