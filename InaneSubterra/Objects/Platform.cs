@@ -10,6 +10,7 @@ namespace InaneSubterra.Objects
     public class Platform
     {
         private List<Block> blocks;
+        private Block[,] blockGrid;
 
         public float Y
         {
@@ -51,6 +52,7 @@ namespace InaneSubterra.Objects
             xWidth = width;
             thisScene = newScene;
             blocks = new List<Block>();
+            blockGrid = new Block[height, width];
 
             rand = new Random();
 
@@ -58,7 +60,9 @@ namespace InaneSubterra.Objects
             {
                 for (int x = 0; x < width; x++)
                 {
-                    blocks.Add(new Block(thisScene, new Vector2(position.X + (x * 32), position.Y + (y * 32))));
+                    Block newBlock = new Block(thisScene, new Vector2(position.X + (x * 32), position.Y + (y * 32)));
+                    blockGrid[y, x] = newBlock;
+                    blocks.Add(newBlock);
                 }
             }
 
@@ -90,21 +94,25 @@ namespace InaneSubterra.Objects
                     if (rand.NextDouble() < probability)
                     {
                         // The platform rolls for falling blocks now.
-                        for (int y = 0; y < Width; y++)
+                        for (int x = 0; x < xWidth; x++)
                         {
                             if (rand.NextDouble() < probability)
                             {
-                                // The block is a falling block.
-                                blocks[y].FallingBlock = true;
-                                blocks[y].fallTime = 2f - ((thisScene.CurrentSequence - 2) * .25f);
+                                Console.WriteLine("Create a falling block!");
 
-                                foreach (Block b in blocks)
+                                // The block is a falling block.
+                                blockGrid[0, x].FallingBlock = true;
+                                blockGrid[0, x].fallTime = 1.7f - ((thisScene.CurrentSequence - 3) * .2f);
+                                blockGrid[0, x].linkedBlocks = new List<Block>();
+
+                                if (height > 1)
                                 {
-                                    if (b.Hitbox.Y == blocks[y].Hitbox.Y && b != blocks[y])
+                                    for (int y = 1; y < height; y++)
                                     {
-                                        blocks[y].linkedBlocks.Add(b);
+                                        blockGrid[0, x].linkedBlocks.Add(blockGrid[y, x]);
                                     }
                                 }
+                                
                             }
                         }
                     }

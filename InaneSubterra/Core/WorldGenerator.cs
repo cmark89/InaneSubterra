@@ -15,13 +15,13 @@ namespace InaneSubterra.Core
         // LevelGen variables.  This ensures that there is variety in the starting rules.
         #region LevelGen constants
         private const float MIN_GAP_CHANCE = .2f;
-        private const float MAX_GAP_CHANCE = 1f;
+        private const float MAX_GAP_CHANCE = .4f;
 
         private const float MIN_MIN_GAP_WIDTH = 50f;
         private const float MAX_MIN_GAP_WIDTH = 100f;
 
         private const float MIN_MAX_GAP_WIDTH = 150f;
-        private const float MAX_MAX_GAP_WIDTH = 325f;
+        private const float MAX_MAX_GAP_WIDTH = 310f;
 
         private const int MIN_MIN_PLATFORM_WIDTH = 2;
         private const int MAX_MIN_PLATFORM_WIDTH = 5;
@@ -57,9 +57,6 @@ namespace InaneSubterra.Core
         private int maxPlatformHeight;
 
         private float verticalPlatformChance;
-
-        // maxYJump is used to ensure that platforms generated are able to theoretically be jumped to.
-        private float maxYJump = 140;
         #endregion
 
 
@@ -185,7 +182,8 @@ namespace InaneSubterra.Core
                 minPlatformWidth -= 1;
 
             // Increase the maximum gap width by a random amount
-            maxGapWidth += rand.Next(5, 10) + thisScene.CurrentSequence * 2;
+            if(maxGapWidth < MAX_MAX_GAP_WIDTH)
+                maxGapWidth += rand.Next(5, 10) + thisScene.CurrentSequence * 2;
 
             // Increase the minimum gap width by a random amount
             minGapWidth += rand.Next(0, 5) + thisScene.CurrentSequence;
@@ -213,9 +211,9 @@ namespace InaneSubterra.Core
             
             float finalHeight;
             if (jumpTime <= 1)
-                finalHeight = lastY + (thisScene.player.jumpVelocity / 2.8f);
+                finalHeight = lastY + (thisScene.player.jumpVelocity / 3f);
             else
-                finalHeight = lastY + ((thisScene.player.jumpVelocity / 2.8f) + ((float)Gravity.gravityAcceleration * (jumpTime - 1)));
+                finalHeight = lastY + ((thisScene.player.jumpVelocity / 3f) + ((float)Gravity.gravityAcceleration * (jumpTime - 1)));
 
             Console.WriteLine("Final maximum height: " + finalHeight);
             return finalHeight;

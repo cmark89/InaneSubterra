@@ -51,8 +51,9 @@ namespace InaneSubterra.Objects
             // Set the OnCollision event to resolve collisions only with other blocks.
             OnCollision += delegate(object sender, CollisionEventArgs e)
             {
-                if (FallingBlock && e.CollidedObject.Name == "Player" && Hitbox.Y > e.CollidedObject.Hitbox.Y) 
+                if (FallingBlock && e.CollidedObject.Name == "Player" && Hitbox.Y > e.CollidedObject.Hitbox.Y && !falling) 
                 {
+                    Console.WriteLine("Falling block walked on by player!");
                     falling = true;
                 }
             };
@@ -70,9 +71,18 @@ namespace InaneSubterra.Objects
                 {
                     falling = false;
 
+                    Console.WriteLine("BEGIN FALLING!");
+
                     UsesGravity = true;
+                    ObjectState = ObjectState.Falling;
                     foreach (Block b in linkedBlocks)
+                    {
                         b.UsesGravity = true;
+                        b.ObjectState = ObjectState.Falling;
+                    }
+
+                    // Force the player to check if it's falling.
+                    thisScene.player.RequestsFloorCollisionCheck = true;
                 }
             }
         }

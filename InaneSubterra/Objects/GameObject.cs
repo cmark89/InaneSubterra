@@ -205,6 +205,13 @@ namespace InaneSubterra.Objects
             if (floorObjectList.Count > 0)
             {
                 ObjectState = ObjectState.Grounded;
+
+                // Special exception for blocks that are falling
+                foreach(ICollidable ic in floorObjectList.FindAll(x => x is Block))
+                {
+                    Block b = ic as Block;
+                    b.OnCollision(this, new CollisionEventArgs(this));
+                }
             }
             else
             {
