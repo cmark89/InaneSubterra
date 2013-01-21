@@ -66,60 +66,66 @@ namespace InaneSubterra.Objects
                 }
             }
 
-            // Check for special item spawns...
-
-            // Check to see if a sequence crystal should spawn
-            if (thisScene.sequenceLength > thisScene.sequenceCrystalMinLength && !thisScene.crystalAppeared)
+            if (thisScene.CurrentSequence < 11)
             {
-                // Store the probability of spawn based on the current length of the sequence
-                float probability = (thisScene.sequenceLength - thisScene.sequenceCrystalMinLength) / (thisScene.sequenceCrystalMaxLength - thisScene.sequenceCrystalMinLength);
-                Console.WriteLine("Sequence Progress: " + probability + "% chance of a Sequence Crystal spawning");
-                if (rand.NextDouble() < probability)
-                {
-                    Console.WriteLine("A Sequence Crystal appears!");
-                    // Spawn a sequence crystal in the middle of the platform
-                    new SequenceCrystal(thisScene, new Vector2(MiddleOfPlatform() - 24, Y - 48));
+                // Check for special item spawns...
 
-                    // Remove all falling blocks from the platform.
+                // Check to see if a sequence crystal should spawn
+                if (thisScene.sequenceLength > thisScene.sequenceCrystalMinLength && !thisScene.crystalAppeared)
+                {
+                    // Store the probability of spawn based on the current length of the sequence
+                    float probability = (thisScene.sequenceLength - thisScene.sequenceCrystalMinLength) / (thisScene.sequenceCrystalMaxLength - thisScene.sequenceCrystalMinLength);
+                    Console.WriteLine("Sequence Progress: " + probability + "% chance of a Sequence Crystal spawning");
+                    if (rand.NextDouble() < probability)
+                    {
+                        Console.WriteLine("A Sequence Crystal appears!");
+                        // Spawn a sequence crystal in the middle of the platform
+                        new SequenceCrystal(thisScene, new Vector2(MiddleOfPlatform() - 24, Y - 48));
+
+                        // Remove all falling blocks from the platform.
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Sequence Progress: " + thisScene.sequenceLength + " / " + thisScene.sequenceCrystalMinLength);
+
+                    // Check to see if the platform generated should roll for falling blocks
+                    if (thisScene.CurrentSequence >= 3)
+                    {
+                        float probability = (.05f * thisScene.CurrentSequence);
+                        if (rand.NextDouble() < probability)
+                        {
+                            // The platform rolls for falling blocks now.
+                            for (int x = 0; x < xWidth; x++)
+                            {
+                                if (rand.NextDouble() < probability)
+                                {
+                                    Console.WriteLine("Create a falling block!");
+
+                                    // The block is a falling block.
+                                    blockGrid[0, x].FallingBlock = true;
+                                    blockGrid[0, x].fallTime = 1.7f - ((thisScene.CurrentSequence - 3) * .2f);
+                                    blockGrid[0, x].linkedBlocks = new List<Block>();
+
+                                    if (height > 1)
+                                    {
+                                        for (int y = 1; y < height; y++)
+                                        {
+                                            blockGrid[0, x].linkedBlocks.Add(blockGrid[y, x]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             else
             {
-                Console.WriteLine("Sequence Progress: " + thisScene.sequenceLength + " / " + thisScene.sequenceCrystalMinLength);
-
-                // Check to see if the platform generated should roll for falling blocks
-                if (thisScene.CurrentSequence >= 3)
-                {
-                    float probability = (.05f * thisScene.CurrentSequence);
-                    if (rand.NextDouble() < probability)
-                    {
-                        // The platform rolls for falling blocks now.
-                        for (int x = 0; x < xWidth; x++)
-                        {
-                            if (rand.NextDouble() < probability)
-                            {
-                                Console.WriteLine("Create a falling block!");
-
-                                // The block is a falling block.
-                                blockGrid[0, x].FallingBlock = true;
-                                blockGrid[0, x].fallTime = 1.7f - ((thisScene.CurrentSequence - 3) * .2f);
-                                blockGrid[0, x].linkedBlocks = new List<Block>();
-
-                                if (height > 1)
-                                {
-                                    for (int y = 1; y < height; y++)
-                                    {
-                                        blockGrid[0, x].linkedBlocks.Add(blockGrid[y, x]);
-                                    }
-                                }
-                                
-                            }
-                        }
-                    }
-
-                }
+                // It's literally the 11th hour, so create the final "boss"
+                thisScene.evilPlayer = new EvilPlayer(thisScene, new Vector2(X + 2000, Y - thisScene.player.Hitbox.Height));
+                thisScene.player.SetPosition(new Vector2(X + 500, Y - thisScene.player.Hitbox.Height));
             }
-
-        }
+        } 
     }
 }

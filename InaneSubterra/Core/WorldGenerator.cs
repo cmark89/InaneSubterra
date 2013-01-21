@@ -13,6 +13,7 @@ namespace InaneSubterra.Core
     {
         // These constants govern the minimum and maximum values that can be rolled for the /initial/
         // LevelGen variables.  This ensures that there is variety in the starting rules.
+
         #region LevelGen constants
         private const float MIN_GAP_CHANCE = .2f;
         private const float MAX_GAP_CHANCE = .4f;
@@ -21,7 +22,7 @@ namespace InaneSubterra.Core
         private const float MAX_MIN_GAP_WIDTH = 100f;
 
         private const float MIN_MAX_GAP_WIDTH = 150f;
-        private const float MAX_MAX_GAP_WIDTH = 310f;
+        private const float MAX_MAX_GAP_WIDTH = 300f;
 
         private const int MIN_MIN_PLATFORM_WIDTH = 2;
         private const int MAX_MIN_PLATFORM_WIDTH = 5;

@@ -113,6 +113,7 @@
     <Compile Include="Core\AnimatedSprite.cs" />
     <Compile Include="Core\Animation.cs" />
     <Compile Include="Core\WorldGenerator.cs" />
+    <Compile Include="Objects\EvilPlayer.cs" />
     <Compile Include="Objects\GameObject.cs" />
     <Compile Include="Objects\Platform.cs" />
     <Compile Include="Objects\Player.cs" />

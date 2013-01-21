@@ -5,7 +5,9 @@ using System.Text;
 using ObjectivelyRadical;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Media;
 using ObjectivelyRadical.Controls;
 using InaneSubterra.Core;
 using InaneSubterra.Physics;
@@ -22,6 +24,16 @@ namespace InaneSubterra.Scenes
         public Texture2D BlockTexture { get; private set; }
         public Texture2D PlayerTexture { get; private set; }
         public Texture2D CrystalTexture { get; private set; }
+        public Texture2D FadeTexture { get; private set; }
+
+        public SpriteFont SequenceFont { get; private set; }
+        public SpriteFont LargeFont { get; private set; }
+
+        public Song BeneathThisDelusion;
+        public Song DelusionAwakening;
+
+        public SoundEffect gunshot;
+        public SoundEffect fall;
 
         // Colors for the various sequences are stored here...
         public List<Color> SequenceColors { get; private set; }
@@ -58,9 +70,24 @@ namespace InaneSubterra.Scenes
         // Stores the length of the current sequence after which it will be possible for a Sequence Crystal to spawn, and the length at which it is certain
         //public float sequenceCrystalMinLength = 3000f;
         //public float sequenceCrystalMaxLength = 6000f;
-        public float sequenceCrystalMinLength = 300f;
-        public float sequenceCrystalMaxLength = 500f;
+        public float sequenceCrystalMinLength = 100f;
+        public float sequenceCrystalMaxLength = 200f;
         public bool crystalAppeared = false;
+
+        // Store the player's reflection if it exists
+        public EvilPlayer evilPlayer;
+
+        // Variables related to the ending
+        private float endingTimer;
+        private bool reflectionMet;
+        private bool shotFired;
+        private bool playerDown;
+
+        private bool screenFade;
+        private Color fadeColor;
+        private bool completedFade;
+        private bool endingTextShown;
+        private Color endingTextColor;
 
         #endregion
         public GameScene()
@@ -83,8 +110,9 @@ namespace InaneSubterra.Scenes
                     Color.OrangeRed,                //Sequence 6: Fear
                     Color.MediumPurple,             //Sequence 7: Guilt
                     Color.DarkMagenta,              //Sequence 8: Despair
-                    new Color(.1f, .1f, .1f, 1f),   //Sequence 9: Introspection
-                    Color.Red                       //Sequence 0: Faith
+                    Color.Red,                       //Sequence 9: Hate
+                    new Color(.1f, .1f, .1f, 1f),   //Sequence 10: Introspection
+                    new Color(1f,1f,1f, .5f)        //Sequence 0: Truth
                 };
             }
             
@@ -123,6 +151,27 @@ namespace InaneSubterra.Scenes
 
             if (CrystalTexture == null)
                 CrystalTexture = content.Load<Texture2D>("Graphics/crystal");
+
+            if (FadeTexture == null)
+                FadeTexture = content.Load<Texture2D>("Graphics/fade");
+
+            if (SequenceFont == null)
+                SequenceFont = content.Load<SpriteFont>("Font/SequenceFont");
+
+            if (LargeFont == null)
+                LargeFont = content.Load<SpriteFont>("Font/TitleFont");
+
+            if (BeneathThisDelusion == null)
+                BeneathThisDelusion = content.Load<Song>("Audio/BeneathThisDelusion");
+
+            if (DelusionAwakening == null)
+                DelusionAwakening = content.Load<Song>("Audio/DelusionAwakening");
+
+            if (gunshot == null)
+                gunshot = content.Load<SoundEffect>("Audio/gunshot");
+
+            if (fall == null)
+                fall = content.Load<SoundEffect>("Audio/fall");
             
 
             TestAddBlock();
@@ -136,6 +185,7 @@ namespace InaneSubterra.Scenes
             background.Add(new ScrollingBackground(this, new Vector2(BackgroundTexture.Width / 2, 0)));
 
             UpdateCamera();
+            PlaySong(BeneathThisDelusion);
         }
 
 
@@ -157,7 +207,7 @@ namespace InaneSubterra.Scenes
 
             UpdateCamera();
 
-            if (ScreenArea.X + ScreenArea.Width > levelLength)
+            if (CurrentSequence < 11 && ScreenArea.X + ScreenArea.Width > levelLength)
             {
                 Console.WriteLine("Generating area!");
                 worldGenerator.GenerateArea(ref levelLength);
@@ -180,7 +230,87 @@ namespace InaneSubterra.Scenes
             {
                 sb.Update(gameTime);
             }
-            
+
+            // Ending update
+            if (CurrentSequence == 11)
+            {
+                endingTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                if (!reflectionMet && endingTimer > 1f)
+                {
+                    fadeColor = Color.Lerp(Color.White, Color.Transparent, (endingTimer - 1f) / 3f);
+                    if ((endingTimer - 1f) / 3f >= 1)
+                    {
+                        screenFade = false;
+                    }
+                }
+                if (!reflectionMet && Vector2.Distance(player.Position, evilPlayer.Position) < ScreenArea.Width / 3)
+                {
+                    reflectionMet = true;
+                    player.StopWalking();
+                    endingTimer = 0;
+                }
+                if (reflectionMet && !shotFired)
+                {
+                    if (endingTimer >= 11f)
+                    {
+                        shotFired = true;
+                        evilPlayer.Shoot();
+                        player.GetShot();
+                        endingTimer = 0;
+                        gunshot.Play(.5f, 0f, 0f);
+                        MediaPlayer.Stop();
+                    }
+                    else
+                    {
+                        Camera = new Vector2(Camera.X + 15.9f * (float)gameTime.ElapsedGameTime.TotalSeconds, Camera.Y);
+                    }
+                }
+                
+
+                if (shotFired && !playerDown && endingTimer > 3f)
+                {
+                    playerDown = true;
+                    //Sound of falling here
+                    player.Fall();
+                    fall.Play(.65f, 0f, 0f);
+                    endingTimer = 0;
+                }
+
+                if (!completedFade && playerDown && endingTimer > 2.5f)
+                {
+                    // Begin fading the screen here, and fading in the text.
+                    if(!screenFade)
+                        screenFade = true;
+
+                    fadeColor = Color.Lerp(Color.Transparent, Color.White, (endingTimer - 2.5f) / 4f);
+
+                    if (fadeColor == Color.White)
+                    {
+                        completedFade = true;
+                        endingTimer = 0f;
+                    }
+                }
+
+                if (completedFade)
+                {
+                    if (!endingTextShown)
+                        endingTextShown = true;
+
+                    endingTextColor = Color.Lerp(Color.Transparent, Color.Black, (endingTimer - 2.5f) / 5f);
+
+                    if (endingTimer > 10f)
+                    {
+                        endingTextColor = Color.Lerp(Color.Black, Color.Transparent, (endingTimer - 10f) / 5f);
+                        fadeColor = Color.Lerp(Color.White, Color.Black, (endingTimer - 10f) / 5f);
+
+                        if (fadeColor == Color.Black)
+                        {
+                            // Dump the player back to the title screen here
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -199,6 +329,12 @@ namespace InaneSubterra.Scenes
             }
 
             player.Draw(spriteBatch);
+
+            if (screenFade)
+                spriteBatch.Draw(FadeTexture, new Rectangle(0, 0, ScreenArea.Width, ScreenArea.Height), fadeColor);
+
+            if (endingTextShown)
+                spriteBatch.DrawString(LargeFont, "The Sequence Continues...", new Vector2((ScreenArea.Width - LargeFont.MeasureString("The Sequence Continues...").X) / 2f, (ScreenArea.Height - LargeFont.MeasureString("The Sequence Continues...").Y) / 2), endingTextColor);
         }
 
 
@@ -219,6 +355,10 @@ namespace InaneSubterra.Scenes
 
         private void UpdateCamera()
         {
+            // Do not update camera once the ending has begun.
+            if (reflectionMet)
+                return;
+
             // Cache the current camera position
             Vector2 lastCameraPos = Camera, cameraDelta;
 
@@ -278,7 +418,27 @@ namespace InaneSubterra.Scenes
 
             worldGenerator.SequenceUp();
 
-            crystalAppeared = false;
+            // Set this to 11, like the joke
+            if (CurrentSequence == 11)
+            {
+                PlaySong(DelusionAwakening);
+                Console.WriteLine("Begin the ending!");
+                //Create the final platform
+                Platform finalPlatform = new Platform(this, new Vector2(levelLength + 1, player.Hitbox.Y + player.Hitbox.Height), 100, 15);
+                player.controlEnabled = false;
+                player.BeginWalkingRight();
+
+                screenFade = true;
+                fadeColor = Color.White;
+            }
+            else
+                crystalAppeared = false;
+        }
+
+        public void PlaySong(Song newSong)
+        {
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Play(newSong);
         }
     }
 

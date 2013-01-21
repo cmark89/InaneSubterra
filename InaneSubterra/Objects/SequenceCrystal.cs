@@ -19,7 +19,7 @@ namespace InaneSubterra.Objects
         public SequenceCrystal(GameScene newScene, Vector2 newPos)
         {
             thisScene = newScene;
-            color = thisScene.SequenceColors[thisScene.CurrentSequence];
+            color = thisScene.SequenceColors[thisScene.CurrentSequence + 1];
             Position = newPos;
 
             FrameWidth = 48;
@@ -55,7 +55,7 @@ namespace InaneSubterra.Objects
         {
             // Build the animated sprite
             Dictionary<string, Animation> animations = new Dictionary<string, Animation>();
-            animations.Add("Stand", new Animation(thisScene, thisScene.CrystalTexture, 48, 48, new int[] { 0, 1 }, 4f, true));
+            animations.Add("Stand", new Animation(thisScene, thisScene.CrystalTexture, 48, 48, new int[] { 0, 1, 2, 3 }, 8f, true));
 
             sprite = new AnimatedSprite(thisScene, animations);
             sprite.PlayAnimation("Stand");
