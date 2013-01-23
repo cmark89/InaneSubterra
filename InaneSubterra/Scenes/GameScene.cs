@@ -37,6 +37,7 @@ namespace InaneSubterra.Scenes
 
         // Colors for the various sequences are stored here...
         public List<Color> SequenceColors { get; private set; }
+        public List<string> SequenceTitles { get; private set; }
         public int CurrentSequence { get; private set; }
 
         // Stores the camera position for drawing the game.
@@ -57,6 +58,9 @@ namespace InaneSubterra.Scenes
 
         // Store the background for updating purposes.
         public List<ScrollingBackground> background;
+
+        // Store the background for updating purposes.
+        public List<SequenceText> sequenceText;
 
         // The player object
         public Player player {get; private set;}
@@ -89,6 +93,10 @@ namespace InaneSubterra.Scenes
         private bool endingTextShown;
         private Color endingTextColor;
 
+        private bool screenFlash;
+        private Color flashColor;
+        private float flashTime;
+
         #endregion
         public GameScene()
         {
@@ -115,6 +123,26 @@ namespace InaneSubterra.Scenes
                     new Color(1f,1f,1f, .5f)        //Sequence 0: Truth
                 };
             }
+
+            // Set up the list of titles for the sequence
+            if (SequenceTitles == null)
+            {
+                SequenceTitles = new List<string>()
+                {
+                    "",
+                    "Curiosity",
+                    "Optimism",
+                    "Hope",
+                    "Doubt",
+                    "Denial",
+                    "Fear",
+                    "Guilt",
+                    "Despair",
+                    "Futility",
+                    "Introspection",
+                    "Truth"
+                };
+            }
             
             // Set the sequence to 1.  This has the effect of ignoring the first color in the Color list.
             CurrentSequence = 1;
@@ -130,6 +158,7 @@ namespace InaneSubterra.Scenes
 
             // Create a new list to store the game objects
             gameObjects = new List<GameObject>();
+            sequenceText = new List<SequenceText>();
 
             // Store the screen area
             Viewport view = InaneSubterra.graphics.GraphicsDevice.Viewport;
@@ -186,6 +215,7 @@ namespace InaneSubterra.Scenes
 
             UpdateCamera();
             PlaySong(BeneathThisDelusion);
+            ShowSequenceText();
         }
 
 
@@ -228,8 +258,25 @@ namespace InaneSubterra.Scenes
             // Update color changing for the background if needed
             foreach (ScrollingBackground sb in background)
             {
-                sb.Update(gameTime);
+                sb.Update(gameTime);     
             }
+
+            if (screenFlash)
+            {
+                flashTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (flashTime < 0)
+                    screenFlash = false;
+            }
+
+            if (sequenceText.Count > 0)
+            {
+                foreach (SequenceText st in sequenceText)
+                    st.Update(gameTime);
+
+                foreach (SequenceText st in sequenceText.FindAll(x => !x.visible))
+                    sequenceText.Remove(st);
+            }
+
 
             // Ending update
             if (CurrentSequence == 11)
@@ -330,8 +377,17 @@ namespace InaneSubterra.Scenes
 
             player.Draw(spriteBatch);
 
+            if (screenFlash)
+                spriteBatch.Draw(FadeTexture, new Rectangle(0, 0, ScreenArea.Width, ScreenArea.Height), Color.Lerp(Color.Transparent, flashColor, flashTime));
+                
+
             if (screenFade)
                 spriteBatch.Draw(FadeTexture, new Rectangle(0, 0, ScreenArea.Width, ScreenArea.Height), fadeColor);
+
+            foreach (SequenceText st in sequenceText)
+            {
+                st.Draw(spriteBatch);
+            }
 
             if (endingTextShown)
                 spriteBatch.DrawString(LargeFont, "The Sequence Continues...", new Vector2((ScreenArea.Width - LargeFont.MeasureString("The Sequence Continues...").X) / 2f, (ScreenArea.Height - LargeFont.MeasureString("The Sequence Continues...").Y) / 2), endingTextColor);
@@ -411,10 +467,17 @@ namespace InaneSubterra.Scenes
             CurrentSequence++;
             sequenceLength = 0;
 
+            screenFlash = true;
+            flashColor = SequenceColors[CurrentSequence];
+            flashTime = .5f;
+
+            ShowSequenceText();
+
             foreach (ScrollingBackground bg in background)
             {
                 bg.ChangeColor(SequenceColors[CurrentSequence], 5f);
             }
+
 
             worldGenerator.SequenceUp();
 
@@ -424,7 +487,7 @@ namespace InaneSubterra.Scenes
                 PlaySong(DelusionAwakening);
                 Console.WriteLine("Begin the ending!");
                 //Create the final platform
-                Platform finalPlatform = new Platform(this, new Vector2(levelLength + 1, player.Hitbox.Y + player.Hitbox.Height), 100, 15);
+                Platform finalPlatform = new Platform(this, new Vector2(levelLength + 1, 400), 98, 15);
                 player.controlEnabled = false;
                 player.BeginWalkingRight();
 
@@ -439,6 +502,15 @@ namespace InaneSubterra.Scenes
         {
             MediaPlayer.IsRepeating = true;
             MediaPlayer.Play(newSong);
+        }
+
+        public void ShowSequenceText()
+        {
+            int thisSequence = CurrentSequence;
+            if (CurrentSequence == 11)
+                thisSequence = 0;
+            sequenceText.Add(new SequenceText(this, "Sequence " + thisSequence, new Vector2(0 - SequenceFont.MeasureString("Sequence " + CurrentSequence).X, 30), (ScreenArea.Width / 4f), ((ScreenArea.Width / 4f) * 3), 400, 60));
+            sequenceText.Add(new SequenceText(this, SequenceTitles[CurrentSequence].PadLeft(11), new Vector2(ScreenArea.Width, 80), (ScreenArea.Width / 4f), ((ScreenArea.Width / 4f) * 3), -400, -60));
         }
     }
 

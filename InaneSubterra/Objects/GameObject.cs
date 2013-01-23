@@ -202,7 +202,7 @@ namespace InaneSubterra.Objects
             if (floorObjectList.Contains(this))
                 floorObjectList.Remove(this);
 
-            if (floorObjectList.Count > 0)
+            if (floorObjectList.FindAll(x => x.Solid).Count > 0)
             {
                 ObjectState = ObjectState.Grounded;
 

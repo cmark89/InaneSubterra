@@ -49,7 +49,9 @@ namespace InaneSubterra
             // Initialize the game
 
             // For now, set the current scene to a new GameScene() instance.
+            
             SetScene(new Scenes.GameScene());
+            //SetScene(new Scenes.TitleScene());
 
             //Set the graphics resolution...
 
