@@ -41,6 +41,7 @@ namespace InaneSubterra
             graphics.PreferredBackBufferHeight = 600;
             
             Content.RootDirectory = "Content";
+            StaticContent = Content;
         }
 
 
@@ -109,7 +110,7 @@ namespace InaneSubterra
         }
 
 
-        protected void SetScene(Scene newScene)
+        public static void SetScene(Scene newScene)
         {
             if (currentScene != null)
                 currentScene.Unload();
@@ -117,7 +118,7 @@ namespace InaneSubterra
             currentScene = newScene;
 
             newScene.Initialize();
-            newScene.LoadContent(Content);
+            newScene.LoadContent(StaticContent);
         }
     }
 }

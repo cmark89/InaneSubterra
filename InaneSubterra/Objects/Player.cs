@@ -54,6 +54,8 @@ namespace InaneSubterra.Objects
             playerState = PlayerState.Fall;
             Solid = true;
 
+            facing = Facing.Right;
+
             Name = "Player";
 
             // Add ResolveCollisions to the OnCollision event.
@@ -69,12 +71,6 @@ namespace InaneSubterra.Objects
         {
             if (controlEnabled)
             {
-                if (Hitbox.Y > thisScene.ScreenArea.Height)
-                {
-                    // Kill the player
-                    Console.WriteLine("Die!!");
-                }
-
                 if (KeyboardManager.KeyDown(Keys.Left))
                 {
                     Position += new Vector2((int)(horizontalSpeed * gameTime.ElapsedGameTime.TotalSeconds * -1), 0);
@@ -183,7 +179,7 @@ namespace InaneSubterra.Objects
             playerAnimations.Add("Down", new Animation(thisScene, Texture, 48, 48, new int[] { 19 }, 10, true));
 
             sprite = new AnimatedSprite(thisScene, playerAnimations);
-            sprite.PlayAnimation("Stand");
+            sprite.PlayAnimation("Fall");
         }
 
         // Used in the game ending to force the player to begin moving against its will

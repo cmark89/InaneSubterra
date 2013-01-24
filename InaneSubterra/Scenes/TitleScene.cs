@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ObjectivelyRadical;
+using ObjectivelyRadical.Controls;
+using ObjectivelyRadical.Scripting;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Media;
-using ObjectivelyRadical.Controls;
+using Microsoft.Xna.Framework.Input;
 using InaneSubterra.Core;
 using InaneSubterra.Physics;
 using InaneSubterra.Objects;
+
 
 namespace InaneSubterra.Scenes
 {
@@ -35,28 +38,29 @@ namespace InaneSubterra.Scenes
         private bool titleAnimationCompleted = false;
 
         public IEnumerator<int> titleAnimation;
+        ScriptReader scriptReader;
 
         public override void Initialize()
         {
             SequenceColors = new Color[]
             {
-                Color.SpringGreen,              //Sequence 2: Optimism
-                Color.YellowGreen,              //Sequence 3: Hope
-                Color.DarkOliveGreen,           //Sequence 4: Doubt
-                Color.DarkOrange,               //Sequence 5: Regret
-                Color.OrangeRed,                //Sequence 6: Fear
-                Color.MediumPurple,             //Sequence 7: Guilt
-                Color.DarkMagenta,              //Sequence 8: Despair
-                Color.Red,                       //Sequence 9: Hate
-                new Color(.1f, .1f, .1f, 1f),   //Sequence 10: Introspection
-                new Color(1f,1f,1f, .5f)        //Sequence 0: Truth
+                Color.SpringGreen,            
+                Color.Red,
+                new Color(1f,1f,1f, .5f),
+                Color.DarkMagenta,
+                Color.DarkOrange, 
+                Color.YellowGreen,
+                Color.OrangeRed,
+                new Color(.1f, .1f, .1f, 1f),
+                Color.DarkOliveGreen,  
+                Color.MediumPurple 
             };
 
             crystals = new List<TitleScreenAnimation>();
             ScreenArea = new Rectangle(0,0,InaneSubterra.graphics.GraphicsDevice.Viewport.Width, InaneSubterra.graphics.GraphicsDevice.Viewport.Height);
-            titleAnimation = TitleAnimation();
 
             titleColor = Color.Transparent;
+            scriptReader = new ScriptReader();
         }
 
         public override void LoadContent(ContentManager content)
@@ -81,20 +85,21 @@ namespace InaneSubterra.Scenes
 
             // Begin playing music here.
             PlaySong(titleMusic);
-            
+
+            scriptReader.Execute(TitleScreenAnimation);
         }
 
         public override void Update(GameTime gameTime)
         {
             titleTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (titleColor != Color.White)
+            if (titleColor != new Color(.5f, .5f, .5f, 1f))
             {
                 titleColor = Color.Lerp(Color.Transparent, new Color(.5f, .5f, .5f, 1f), (titleTime - 2f) / 4f);
             }
 
             if(!titleAnimationCompleted)
-                titleAnimation.MoveNext();
+                scriptReader.Update(gameTime);
 
             // Update the animating crystals.
             foreach (TitleScreenAnimation tsa in crystals)
@@ -102,6 +107,18 @@ namespace InaneSubterra.Scenes
 
 
             // Check for input to start the game
+            if (KeyboardManager.KeyPressedUp(Keys.Space) || KeyboardManager.KeyPressedUp(Keys.Enter))
+            {
+                if (!titleAnimationCompleted)
+                {
+                    titleAnimationCompleted = true;
+                    ShowTitleScreen();
+                }
+                else
+                {
+                    InaneSubterra.SetScene(new GameScene());
+                }
+            }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -114,14 +131,9 @@ namespace InaneSubterra.Scenes
                 tsa.Draw(spriteBatch);
         }
 
-        public IEnumerator<int> TitleAnimation()
-        {
-            Console.WriteLine("Yield until 1f");
-            while (titleTime < 1f)
-            {
-                yield return 0;
-            }
 
+        public IEnumerator<float> TitleScreenAnimation()
+        {
             Vector2 screenCenter = new Vector2((ScreenArea.Width - 48) / 2, (ScreenArea.Height - 48) / 2);
             TitleScreenAnimation newCrystal;
             float angle = 3.4f;
@@ -129,8 +141,7 @@ namespace InaneSubterra.Scenes
 
             for (int i = 0; i < 10; i++)
             {
-                while (titleTime < (i * .8f) + 1f)
-                    yield return 0;
+                yield return .8f;
 
 
                 float newX = (float)Math.Cos(angle) * distance;
@@ -145,11 +156,32 @@ namespace InaneSubterra.Scenes
                 angle += (float)(Math.PI * 2) / 10;
             }
 
-            
-
-            Console.WriteLine("Finished!");
-
             titleAnimationCompleted = true;
+        }
+
+        public void ShowTitleScreen()
+        {
+            titleColor = new Color(.5f, .5f, .5f, 1f);
+            crystals.Clear();
+
+            Vector2 screenCenter = new Vector2((ScreenArea.Width - 48) / 2, (ScreenArea.Height - 48) / 2);
+            TitleScreenAnimation newCrystal;
+            float angle = 3.4f;
+            float distance = 230f;
+
+            for (int i = 0; i < 10; i++)
+            {
+                float newX = (float)Math.Cos(angle) * distance;
+                float newY = (float)Math.Sin(angle) * distance;
+
+                Console.WriteLine("Create crystal " + i);
+                newCrystal = new TitleScreenAnimation(crystalTexture, 48, 48, new int[] { 0, 1, 2, 3 }, 6, true);
+                newCrystal.Position = new Vector2(screenCenter.X + newX, screenCenter.Y + newY);
+                newCrystal.ChangeColor(SequenceColors[i], 0f);
+                crystals.Add(newCrystal);
+
+                angle += (float)(Math.PI * 2) / 10;
+            }
         }
 
         public override void Unload()

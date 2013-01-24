@@ -12,13 +12,13 @@ using ObjectivelyRadical.Controls;
 using InaneSubterra.Core;
 using InaneSubterra.Physics;
 using InaneSubterra.Objects;
+using ObjectivelyRadical.Scripting;
 
 namespace InaneSubterra.Scenes
 {
     public class GameScene : Scene
     {
         #region Fields
-
         // Content cached in these fields for now...
         public Texture2D BackgroundTexture { get; private set; }
         public Texture2D BlockTexture { get; private set; }
@@ -34,6 +34,8 @@ namespace InaneSubterra.Scenes
 
         public SoundEffect gunshot;
         public SoundEffect fall;
+        public SoundEffect deathSound;
+        public SoundEffect sequenceUpSound;
 
         // Colors for the various sequences are stored here...
         public List<Color> SequenceColors { get; private set; }
@@ -49,6 +51,12 @@ namespace InaneSubterra.Scenes
         // Game physics components...
         public CollisionDetection collisionDetection;
         public Gravity gravity;
+
+        // Use this to determine if the player should see the instructional text.
+        public static bool tutorialSeen = false;
+
+        // Check if the player is dead
+        bool playerDead = false;
 
         // Level generator
         WorldGenerator worldGenerator;
@@ -96,6 +104,8 @@ namespace InaneSubterra.Scenes
         private bool screenFlash;
         private Color flashColor;
         private float flashTime;
+
+        private ScriptReader scriptReader;
 
         #endregion
         public GameScene()
@@ -163,6 +173,8 @@ namespace InaneSubterra.Scenes
             // Store the screen area
             Viewport view = InaneSubterra.graphics.GraphicsDevice.Viewport;
             ScreenArea = new Rectangle((int)Camera.X, (int)Camera.Y, view.Width, view.Height);
+
+            scriptReader = new ScriptReader();
         }
 
 
@@ -201,9 +213,14 @@ namespace InaneSubterra.Scenes
 
             if (fall == null)
                 fall = content.Load<SoundEffect>("Audio/fall");
-            
 
-            TestAddBlock();
+            if (sequenceUpSound == null)
+                sequenceUpSound = content.Load<SoundEffect>("Audio/SequenceUp");
+
+            if (deathSound == null)
+                deathSound = content.Load<SoundEffect>("Audio/deathSound");
+
+            AddStartingBlocks();
 
             UpdateCamera();
             ScreenArea = new Rectangle((int)Camera.X, (int)Camera.Y, ScreenArea.Width, ScreenArea.Height);
@@ -215,12 +232,14 @@ namespace InaneSubterra.Scenes
 
             UpdateCamera();
             PlaySong(BeneathThisDelusion);
-            ShowSequenceText();
+            scriptReader.Execute(GameStart);
+            //ShowSequenceText();
         }
 
 
         public override void Update(GameTime gameTime)
         {
+            scriptReader.Update(gameTime);
             foreach (GameObject go in gameObjects)
             {
                 // FIRST THING, update the object's last known position.
@@ -275,6 +294,15 @@ namespace InaneSubterra.Scenes
 
                 foreach (SequenceText st in sequenceText.FindAll(x => !x.visible))
                     sequenceText.Remove(st);
+            }
+
+            if (player != null && player.controlEnabled && !playerDead && player.Hitbox.Y > ScreenArea.Height)
+            {
+                Console.WriteLine("Kill the player now.");
+                scriptReader.Execute(PlayerDeath);
+                //player.controlEnabled = false;
+                //StopMusic();
+                //deathSound.Play();
             }
 
 
@@ -353,6 +381,7 @@ namespace InaneSubterra.Scenes
 
                         if (fadeColor == Color.Black)
                         {
+                            InaneSubterra.SetScene(new TitleScene());
                             // Dump the player back to the title screen here
                         }
                     }
@@ -375,7 +404,8 @@ namespace InaneSubterra.Scenes
                     go.Draw(spriteBatch);
             }
 
-            player.Draw(spriteBatch);
+            if(player != null)
+                player.Draw(spriteBatch);
 
             if (screenFlash)
                 spriteBatch.Draw(FadeTexture, new Rectangle(0, 0, ScreenArea.Width, ScreenArea.Height), Color.Lerp(Color.Transparent, flashColor, flashTime));
@@ -400,13 +430,11 @@ namespace InaneSubterra.Scenes
         
 
         // Add blocks to the scene to test collision detection.
-        private void TestAddBlock()
+        private void AddStartingBlocks()
         {
-            player = new Objects.Player(this, Vector2.Zero);
+            player = new Objects.Player(this, new Vector2(0, ScreenArea.Height/2));
 
-            new Objects.Platform(this, new Vector2(32, 500), 8, 1);
-
-            new Objects.Block(this, new Vector2(150, 0)).ObjectState = ObjectState.Falling;
+            new Objects.Platform(this, new Vector2(-160, 500), 11, 1);
         }
 
         private void UpdateCamera()
@@ -422,7 +450,8 @@ namespace InaneSubterra.Scenes
             Viewport view = InaneSubterra.graphics.GraphicsDevice.Viewport;
 
             // Move the camera, centered on the player.
-            Camera = new Vector2(player.Position.X - (view.Width / 2), Camera.Y);
+            if(player != null)
+                Camera = new Vector2(player.Position.X - (view.Width / 2), Camera.Y);
 
             // Find how much the camera has changed position.
             cameraDelta = Camera - lastCameraPos;
@@ -464,14 +493,18 @@ namespace InaneSubterra.Scenes
 
         public void SequenceUp()
         {
+            scriptReader.Execute(SequenceUpScript);
+        }
+
+        public IEnumerator<float> SequenceUpScript()
+        {
             CurrentSequence++;
             sequenceLength = 0;
 
+            sequenceUpSound.Play(.8f, 0f, 0f);
             screenFlash = true;
             flashColor = SequenceColors[CurrentSequence];
             flashTime = .5f;
-
-            ShowSequenceText();
 
             foreach (ScrollingBackground bg in background)
             {
@@ -495,7 +528,12 @@ namespace InaneSubterra.Scenes
                 fadeColor = Color.White;
             }
             else
+            {
                 crystalAppeared = false;
+            }
+
+            yield return 1.3f;
+            ShowSequenceText();
         }
 
         public void PlaySong(Song newSong)
@@ -504,13 +542,49 @@ namespace InaneSubterra.Scenes
             MediaPlayer.Play(newSong);
         }
 
+        public void StopMusic()
+        {
+            MediaPlayer.Stop();
+        }
+
         public void ShowSequenceText()
         {
             int thisSequence = CurrentSequence;
             if (CurrentSequence == 11)
                 thisSequence = 0;
+
             sequenceText.Add(new SequenceText(this, "Sequence " + thisSequence, new Vector2(0 - SequenceFont.MeasureString("Sequence " + CurrentSequence).X, 30), (ScreenArea.Width / 4f), ((ScreenArea.Width / 4f) * 3), 400, 60));
             sequenceText.Add(new SequenceText(this, SequenceTitles[CurrentSequence].PadLeft(11), new Vector2(ScreenArea.Width, 80), (ScreenArea.Width / 4f), ((ScreenArea.Width / 4f) * 3), -400, -60));
+        }
+
+        public IEnumerator<float> GameStart()
+        {
+            if (!tutorialSeen)
+            {
+                tutorialSeen = true;
+                yield return .5f;
+                sequenceText.Add(new SequenceText(this, "Arrow keys to move", new Vector2(0 - SequenceFont.MeasureString("Arrow keys to move").X, 500), (ScreenArea.Width / 4f), ((ScreenArea.Width / 4f) * 3), 400, 60));
+                yield return 1.5f;
+                sequenceText.Add(new SequenceText(this, "Spacebar to jump", new Vector2(0 - SequenceFont.MeasureString("Spacebar to jump").X, 550), (ScreenArea.Width / 4f), ((ScreenArea.Width / 4f) * 3), 400, 60));
+                yield return 2f;
+            }
+
+            yield return 2f;
+            
+            ShowSequenceText();
+        }
+
+        public IEnumerator<float> PlayerDeath()
+        {
+            Console.WriteLine("Death delegate");
+            playerDead = true;
+            player.Destroy();
+            player = null;
+
+            StopMusic();
+            deathSound.Play();
+            yield return 1.4f;
+            InaneSubterra.SetScene(new TitleScene());
         }
     }
 
