@@ -80,7 +80,7 @@ namespace InaneSubterra.Scenes
             if (titleMusic == null)
                 titleMusic = content.Load<Song>("Audio/DelusionInduction");
 
-            backgroundColor = new Color(.6f, .6f, .6f, 1f);
+            backgroundColor = Color.Black;
 
 
             // Begin playing music here.
@@ -95,7 +95,7 @@ namespace InaneSubterra.Scenes
 
             if (titleColor != new Color(.5f, .5f, .5f, 1f))
             {
-                titleColor = Color.Lerp(Color.Transparent, new Color(.5f, .5f, .5f, 1f), (titleTime - 2f) / 4f);
+                titleColor = Color.Lerp(Color.Transparent, new Color(.5f, .5f, .5f, 1f), (titleTime - 5f) / 4f);
             }
 
             if(!titleAnimationCompleted)
@@ -139,15 +139,22 @@ namespace InaneSubterra.Scenes
             float angle = 3.4f;
             float distance = 230f;
 
+            titleTime = 0;
+
+            while(backgroundColor != new Color(.6f, .6f, .6f, 1f))
+            {
+                backgroundColor = Color.Lerp(Color.Black, new Color(.6f, .6f, .6f, 1f), titleTime / 3f);
+                yield return 0f;
+            }
+
             for (int i = 0; i < 10; i++)
             {
-                yield return .8f;
+                yield return .4f;
 
 
                 float newX = (float)Math.Cos(angle) * distance;
                 float newY = (float)Math.Sin(angle) * distance;
 
-                Console.WriteLine("Create crystal " + i);
                 newCrystal = new TitleScreenAnimation(crystalTexture, 48, 48, new int[] { 0, 1, 2, 3 }, 6, true);
                 newCrystal.Position = new Vector2(screenCenter.X + newX, screenCenter.Y + newY);
                 newCrystal.ChangeColor(SequenceColors[i], 3f);
@@ -161,6 +168,7 @@ namespace InaneSubterra.Scenes
 
         public void ShowTitleScreen()
         {
+            backgroundColor = new Color(.6f, .6f, .6f, 1f);
             titleColor = new Color(.5f, .5f, .5f, 1f);
             crystals.Clear();
 
@@ -174,7 +182,6 @@ namespace InaneSubterra.Scenes
                 float newX = (float)Math.Cos(angle) * distance;
                 float newY = (float)Math.Sin(angle) * distance;
 
-                Console.WriteLine("Create crystal " + i);
                 newCrystal = new TitleScreenAnimation(crystalTexture, 48, 48, new int[] { 0, 1, 2, 3 }, 6, true);
                 newCrystal.Position = new Vector2(screenCenter.X + newX, screenCenter.Y + newY);
                 newCrystal.ChangeColor(SequenceColors[i], 0f);

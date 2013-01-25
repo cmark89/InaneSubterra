@@ -75,10 +75,9 @@ namespace InaneSubterra.Objects
                 {
                     // Store the probability of spawn based on the current length of the sequence
                     float probability = (thisScene.sequenceLength - thisScene.sequenceCrystalMinLength) / (thisScene.sequenceCrystalMaxLength - thisScene.sequenceCrystalMinLength);
-                    Console.WriteLine("Sequence Progress: " + probability + "% chance of a Sequence Crystal spawning");
+
                     if (rand.NextDouble() < probability)
                     {
-                        Console.WriteLine("A Sequence Crystal appears!");
                         // Spawn a sequence crystal in the middle of the platform
                         new SequenceCrystal(thisScene, new Vector2(MiddleOfPlatform() - 24, Y - 48));
 
@@ -87,8 +86,6 @@ namespace InaneSubterra.Objects
                 }
                 else
                 {
-                    Console.WriteLine("Sequence Progress: " + thisScene.sequenceLength + " / " + thisScene.sequenceCrystalMinLength);
-
                     // Check to see if the platform generated should roll for falling blocks
                     if (thisScene.CurrentSequence >= 3)
                     {
@@ -100,8 +97,6 @@ namespace InaneSubterra.Objects
                             {
                                 if (rand.NextDouble() < probability)
                                 {
-                                    Console.WriteLine("Create a falling block!");
-
                                     // The block is a falling block.
                                     blockGrid[0, x].FallingBlock = true;
                                     blockGrid[0, x].fallTime = 1.7f - ((thisScene.CurrentSequence - 3) * .2f);

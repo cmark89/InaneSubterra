@@ -49,29 +49,6 @@ namespace InaneSubterra.Physics
             axisList.Remove(obj);
         }
 
-
-        // Sorts the axisList along the X axis.
-        public void SortAxisList()
-        {
-            // Use a QuickSort algorithm here to sort by X position...
-            // This algorithm is for testing purposes and is VERY temporary.  Replace with QuickSort ASAP.
-
-            for (int i = 0; i < axisList.Count; i++)
-            {
-                for (int j = i + 1; j < axisList.Count; j++)
-                {
-                    // If the latter element's X comes before the current element's X
-                    if(axisList[j].Hitbox.X < axisList[i].Hitbox.X)
-                    {
-                        ICollidable tempCollidable = axisList[i];
-                        axisList[i] = axisList[j];
-                        axisList[j] = tempCollidable;
-                    }   
-                }
-            }
-        }
-
-
         public List<ICollidable> QuickSort(List<ICollidable> listToSort)
         {
             if (listToSort.Count < 2)

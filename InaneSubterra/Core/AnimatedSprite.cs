@@ -10,8 +10,8 @@ namespace InaneSubterra.Core
 {
     public class AnimatedSprite
     {
-        // Automatically update the position of the current animation to reflect changes to the sprite
         private Vector2 _position;
+        // Property automatically update the position of the current animation to reflect changes to the sprite
         public Vector2 Position 
         {
             get
@@ -51,7 +51,6 @@ namespace InaneSubterra.Core
         {
             foreach (KeyValuePair<string, Animation> entry in dictionary)
             {
-                Console.WriteLine(entry.Key + " added to animations.");
                 Animations.Add(entry.Key, entry.Value);
             }
         }
@@ -101,8 +100,6 @@ namespace InaneSubterra.Core
                 Animations.TryGetValue(animName, out newAnim);
 
                 CurrentAnimation = newAnim;
-
-                // Find a way to check this
                 CurrentAnimation.Reset();
                 CurrentAnimationName = animName;
             }

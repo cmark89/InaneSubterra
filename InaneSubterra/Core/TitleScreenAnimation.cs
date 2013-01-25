@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace InaneSubterra.Core
 {
-
+    // Almost a direct copy of the Animation class, because of an oversight
     public class TitleScreenAnimation
     {
         public Vector2 Position { get; set; }

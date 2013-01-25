@@ -107,6 +107,8 @@ namespace InaneSubterra.Objects
                     ObjectState = ObjectState.Jumping;
                     playerState = PlayerState.Jump;
                     sprite.PlayAnimation("Jump");
+
+                    thisScene.jumpSound.Play(.7f, 0f, 0f);
                 }
 
                 if (ObjectState == ObjectState.Jumping && KeyboardManager.KeyPressedUp(Keys.Space))
@@ -159,12 +161,6 @@ namespace InaneSubterra.Objects
         public override void Draw(SpriteBatch spriteBatch)
         {
             sprite.Draw(spriteBatch);
-
-           //Figure out the proper hitbox with this
-           //spriteBatch.Draw(thisScene.BlockTexture, new Rectangle((int)(Hitbox.X - thisScene.Camera.X), (int)(Hitbox.Y - thisScene.Camera.Y), Hitbox.Width, Hitbox.Height), new Color(0f,.4f,.8f,.5f));
-
-            //if(floorHitbox != null)
-                //spriteBatch.Draw(Texture, floorHitbox, new Color(1f,1f,0f, .5f));
         }
 
         public void LoadPlayerAnimations()
@@ -179,6 +175,8 @@ namespace InaneSubterra.Objects
             playerAnimations.Add("Down", new Animation(thisScene, Texture, 48, 48, new int[] { 19 }, 10, true));
 
             sprite = new AnimatedSprite(thisScene, playerAnimations);
+            sprite.Position = Position;
+
             sprite.PlayAnimation("Fall");
         }
 

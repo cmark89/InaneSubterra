@@ -70,9 +70,6 @@ namespace InaneSubterra.Objects
         public override void Draw(SpriteBatch spriteBatch)
         {
             sprite.Draw(spriteBatch, color);
-            
-            //Figure out the proper hitbox with this
-            //spriteBatch.Draw(thisScene.BlockTexture, new Rectangle((int)(Hitbox.X - thisScene.Camera.X), (int)(Hitbox.Y - thisScene.Camera.Y), Hitbox.Width, Hitbox.Height), new Color(0f,.4f,.8f,.5f));
         }
 
 

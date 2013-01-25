@@ -15,28 +15,28 @@ namespace InaneSubterra.Core
         // LevelGen variables.  This ensures that there is variety in the starting rules.
 
         #region LevelGen constants
-        private const float MIN_GAP_CHANCE = .2f;
+        private const float MIN_GAP_CHANCE = .15f;
         private const float MAX_GAP_CHANCE = .4f;
 
         private const float MIN_MIN_GAP_WIDTH = 50f;
         private const float MAX_MIN_GAP_WIDTH = 100f;
 
         private const float MIN_MAX_GAP_WIDTH = 150f;
-        private const float MAX_MAX_GAP_WIDTH = 300f;
+        private const float MAX_MAX_GAP_WIDTH = 290f;
 
-        private const int MIN_MIN_PLATFORM_WIDTH = 2;
-        private const int MAX_MIN_PLATFORM_WIDTH = 5;
+        private const int MIN_MIN_PLATFORM_WIDTH = 3;
+        private const int MAX_MIN_PLATFORM_WIDTH = 6;
 
-        private const int MIN_MAX_PLATFORM_WIDTH = 6;
+        private const int MIN_MAX_PLATFORM_WIDTH = 7;
         private const int MAX_MAX_PLATFORM_WIDTH = 10;
 
         private const int MIN_MIN_PLATFORM_HEIGHT = 1;
         private const int MAX_MIN_PLATFORM_HEIGHT = 2;
 
-        private const int MIN_MAX_PLATFORM_HEIGHT = 2;
-        private const int MAX_MAX_PLATFORM_HEIGHT = 5;
+        private const int MIN_MAX_PLATFORM_HEIGHT = 3;
+        private const int MAX_MAX_PLATFORM_HEIGHT = 6;
 
-        private const float MIN_VERTICAL_PLATFORM_CHANCE = 0f;
+        private const float MIN_VERTICAL_PLATFORM_CHANCE = .1f;
         private const float MAX_VERTICAL_PLATFORM_CHANCE = .5f;
 
         #endregion
@@ -104,11 +104,6 @@ namespace InaneSubterra.Core
 
             // Whether it generates a gap or not, generate a platform.
             GeneratePlatform(ref levelLength);
-
-            // Depending on the sequence, do something with the platform that was just generated.
-            // This will actually be handled in the Platform class's constructor.
-            // Example: If the traversed distance is great enough, put a sequence orb on the platform that 
-            // moves the game to the next sequence.
         }
 
         public void GenerateGap(ref float levelLength)
@@ -117,8 +112,6 @@ namespace InaneSubterra.Core
             float length = (float)(rand.NextDouble() * (maxGapWidth - minGapWidth)) + minGapWidth;
             levelLength += length;
             thisScene.sequenceLength += length;
-
-            // If the current sequence is beyond a certain amount, roll to generate a hazard
         }
 
         public void GeneratePlatform(ref float levelLength)
@@ -136,9 +129,7 @@ namespace InaneSubterra.Core
             float maxJumpHeight = (int)(Math.Max(0 + thisScene.player.Hitbox.Height, MaxJumpHeight(newX, lastY)));
             if(maxJumpHeight > thisScene.ScreenArea.Height - thisScene.BlockTexture.Height)
                 maxJumpHeight = thisScene.ScreenArea.Height - thisScene.BlockTexture.Height;
-            //if (lastY - MaxJumpHeight(newX) >= thisScene.ScreenArea.Height - thisScene.BlockTexture.Height)
-                //newY = rand.Next(0 + thisScene.player.Hitbox.Height, thisScene.ScreenArea.Height - thisScene.BlockTexture.Height);
-            //else
+
             newY = rand.Next((int)maxJumpHeight, thisScene.ScreenArea.Height - thisScene.BlockTexture.Height);
 
 
@@ -200,13 +191,13 @@ namespace InaneSubterra.Core
                 platformEnd = (lastPlatform.X + lastPlatform.Width);
             else
                 platformEnd = 100;
-            Console.WriteLine("Calculating maximum jump height...");
+
             // Get the distance between the platforms
             float gapLength = newX - platformEnd;
-            Console.WriteLine("Gap Width: " + gapLength);
+
             // Find how long it would take in seconds for the player to jump between the gaps
             float jumpTime = gapLength / thisScene.player.horizontalSpeed;
-            Console.WriteLine("Jump Time: " + jumpTime);
+
 
             // Find the maximum height the player can reach in that time given their jump velocity and gravity
             
@@ -216,7 +207,6 @@ namespace InaneSubterra.Core
             else
                 finalHeight = lastY + ((thisScene.player.jumpVelocity / 3f) + ((float)Gravity.gravityAcceleration * (jumpTime - 1)));
 
-            Console.WriteLine("Final maximum height: " + finalHeight);
             return finalHeight;
         }
 

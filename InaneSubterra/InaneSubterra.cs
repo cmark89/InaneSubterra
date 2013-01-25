@@ -49,12 +49,9 @@ namespace InaneSubterra
         {
             // Initialize the game
 
-            // For now, set the current scene to a new GameScene() instance.
-            
-            SetScene(new Scenes.GameScene());
-            //SetScene(new Scenes.TitleScene());
+            // Set the scene to the logo splash screen
+            SetScene(new Scenes.LogoSplashScene());
 
-            //Set the graphics resolution...
 
             
             base.Initialize();
@@ -65,8 +62,6 @@ namespace InaneSubterra
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // Load the content
         }
 
 
@@ -99,7 +94,7 @@ namespace InaneSubterra
             spriteBatch.Begin();
 
 
-            // If the current game scene exists, then draw everything for it.
+            // If the current scene exists, then draw everything for it.
             if (currentScene != null)
             {
                 currentScene.Draw(spriteBatch);

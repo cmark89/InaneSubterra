@@ -165,7 +165,6 @@ namespace InaneSubterra.Objects
                 else
                 {
                     // Otherwise resolve around Y
-                    //Position = new Vector2(Position.X, PreviousPosition.Y);
 
                     // If the collision occurs from above...
                     if (PreviousPosition.Y < Position.Y)

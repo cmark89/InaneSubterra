@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace InaneSubterra.Physics
 {
+    // This class is used to create a hitbox that is not connected to a GameObject
     public class BlankHitbox : ICollidable
     {
         public Rectangle Hitbox { get; private set; }

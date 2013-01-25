@@ -34,7 +34,10 @@ namespace InaneSubterra.Scenes
 
         public SoundEffect gunshot;
         public SoundEffect fall;
+        public SoundEffect jumpSound;
+        public SoundEffect landSound;
         public SoundEffect deathSound;
+        public SoundEffect platformFallSound;
         public SoundEffect sequenceUpSound;
 
         // Colors for the various sequences are stored here...
@@ -80,10 +83,9 @@ namespace InaneSubterra.Scenes
         public float sequenceLength;
         
         // Stores the length of the current sequence after which it will be possible for a Sequence Crystal to spawn, and the length at which it is certain
-        //public float sequenceCrystalMinLength = 3000f;
-        //public float sequenceCrystalMaxLength = 6000f;
-        public float sequenceCrystalMinLength = 100f;
-        public float sequenceCrystalMaxLength = 200f;
+        public float sequenceCrystalMinLength = 2000f;
+        public float sequenceCrystalMaxLength = 4000f;
+
         public bool crystalAppeared = false;
 
         // Store the player's reflection if it exists
@@ -220,6 +222,15 @@ namespace InaneSubterra.Scenes
             if (deathSound == null)
                 deathSound = content.Load<SoundEffect>("Audio/deathSound");
 
+            if (jumpSound == null)
+                jumpSound = content.Load<SoundEffect>("Audio/Jump");
+
+            if (platformFallSound == null)
+                platformFallSound = content.Load<SoundEffect>("Audio/PlatformFall");
+
+            if (landSound == null)
+                landSound = content.Load<SoundEffect>("Audio/Land");
+
             AddStartingBlocks();
 
             UpdateCamera();
@@ -233,7 +244,6 @@ namespace InaneSubterra.Scenes
             UpdateCamera();
             PlaySong(BeneathThisDelusion);
             scriptReader.Execute(GameStart);
-            //ShowSequenceText();
         }
 
 
@@ -258,7 +268,7 @@ namespace InaneSubterra.Scenes
 
             if (CurrentSequence < 11 && ScreenArea.X + ScreenArea.Width > levelLength)
             {
-                Console.WriteLine("Generating area!");
+                // Tell the world generation to create a new platform
                 worldGenerator.GenerateArea(ref levelLength);
             }
 
@@ -298,11 +308,7 @@ namespace InaneSubterra.Scenes
 
             if (player != null && player.controlEnabled && !playerDead && player.Hitbox.Y > ScreenArea.Height)
             {
-                Console.WriteLine("Kill the player now.");
                 scriptReader.Execute(PlayerDeath);
-                //player.controlEnabled = false;
-                //StopMusic();
-                //deathSound.Play();
             }
 
 
@@ -346,7 +352,6 @@ namespace InaneSubterra.Scenes
                 if (shotFired && !playerDown && endingTimer > 3f)
                 {
                     playerDown = true;
-                    //Sound of falling here
                     player.Fall();
                     fall.Play(.65f, 0f, 0f);
                     endingTimer = 0;
@@ -382,7 +387,6 @@ namespace InaneSubterra.Scenes
                         if (fadeColor == Color.Black)
                         {
                             InaneSubterra.SetScene(new TitleScene());
-                            // Dump the player back to the title screen here
                         }
                     }
                 }
@@ -518,7 +522,6 @@ namespace InaneSubterra.Scenes
             if (CurrentSequence == 11)
             {
                 PlaySong(DelusionAwakening);
-                Console.WriteLine("Begin the ending!");
                 //Create the final platform
                 Platform finalPlatform = new Platform(this, new Vector2(levelLength + 1, 400), 98, 15);
                 player.controlEnabled = false;
@@ -576,7 +579,6 @@ namespace InaneSubterra.Scenes
 
         public IEnumerator<float> PlayerDeath()
         {
-            Console.WriteLine("Death delegate");
             playerDead = true;
             player.Destroy();
             player = null;

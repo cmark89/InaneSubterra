@@ -53,7 +53,6 @@ namespace InaneSubterra.Objects
             {
                 if (FallingBlock && e.CollidedObject.Name == "Player" && Hitbox.Y > e.CollidedObject.Hitbox.Y && !falling) 
                 {
-                    Console.WriteLine("Falling block walked on by player!");
                     falling = true;
                 }
             };
@@ -69,9 +68,8 @@ namespace InaneSubterra.Objects
                 fallCount += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (fallCount > fallTime)
                 {
+                    thisScene.platformFallSound.Play(.5f, 0f, 0f);
                     falling = false;
-
-                    Console.WriteLine("BEGIN FALLING!");
 
                     UsesGravity = true;
                     ObjectState = ObjectState.Falling;
@@ -82,7 +80,8 @@ namespace InaneSubterra.Objects
                     }
 
                     // Force the player to check if it's falling.
-                    thisScene.player.RequestsFloorCollisionCheck = true;
+                    if(thisScene.player != null)
+                        thisScene.player.RequestsFloorCollisionCheck = true;
                 }
             }
         }
